@@ -1,0 +1,1082 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Book a Tutoring Session</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+
+<!-- ✅ Firebase SDK (real-time cloud database) -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f4;
+    --bg-tertiary: #eeede9;
+    --bg-success: #eaf3de;
+    --bg-danger: #fcebeb;
+    --text-primary: #1a1a18;
+    --text-secondary: #6b6b67;
+    --text-tertiary: #9b9b96;
+    --text-success: #3b6d11;
+    --text-danger: #a32d2d;
+    --border-light: rgba(0,0,0,0.10);
+    --border-mid: rgba(0,0,0,0.18);
+    --border-strong: rgba(0,0,0,0.28);
+    --border-success: #c0dd97;
+    --border-danger: #f09595;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --tutor-a: #4f6ef7;
+    --tutor-b: #e07b39;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg-primary: #1c1c1a;
+      --bg-secondary: #252523;
+      --bg-tertiary: #2e2e2b;
+      --bg-success: #173404;
+      --bg-danger: #501313;
+      --text-primary: #f0efea;
+      --text-secondary: #a8a8a2;
+      --text-tertiary: #6b6b67;
+      --text-success: #97c459;
+      --text-danger: #f09595;
+      --border-light: rgba(255,255,255,0.08);
+      --border-mid: rgba(255,255,255,0.14);
+      --border-strong: rgba(255,255,255,0.22);
+      --border-success: #3b6d11;
+      --border-danger: #791f1f;
+    }
+  }
+
+  html, body { min-height: 100vh; background: var(--bg-tertiary); font-family: var(--font); color: var(--text-primary); }
+  .site-wrap { max-width: 960px; margin: 0 auto; padding: 1.5rem 1rem 3rem; }
+
+  /* Nav */
+  .nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1rem 1.25rem;
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-light);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+  .nav-logo { font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tab {
+    font-size: 13px; padding: 5px 12px;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-md);
+    cursor: pointer; background: transparent;
+    color: var(--text-secondary); font-family: var(--font);
+    transition: background 0.15s, color 0.15s;
+  }
+  .nav-tab:hover:not(.active) { background: var(--bg-secondary); }
+  .nav-tab.active { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); }
+
+  .main-card {
+    background: var(--bg-primary);
+    border: 0.5px solid var(--border-light);
+    border-top: none;
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    padding: 1.25rem;
+  }
+
+  /* Tutor selector */
+  .tutor-select-section { margin-bottom: 1rem; }
+  .tutor-select-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-tertiary);
+    margin-bottom: 8px;
+  }
+  .tutor-cards { display: flex; gap: 8px; }
+  .tutor-card {
+    flex: 1; padding: 12px 14px;
+    border: 0.5px solid var(--border-mid);
+    border-radius: var(--radius-lg);
+    cursor: pointer; background: var(--bg-primary);
+    transition: all 0.15s; display: flex; align-items: center; gap: 10px;
+  }
+  .tutor-card:hover { border-color: var(--border-strong); background: var(--bg-secondary); }
+  .tutor-card.selected-a { border: 2px solid var(--tutor-a); background: color-mix(in srgb, var(--tutor-a) 8%, var(--bg-primary)); }
+  .tutor-card.selected-b { border: 2px solid var(--tutor-b); background: color-mix(in srgb, var(--tutor-b) 8%, var(--bg-primary)); }
+  .tutor-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0;
+  }
+  .tutor-avatar-a { background: var(--tutor-a); }
+  .tutor-avatar-b { background: var(--tutor-b); }
+  .tutor-card-name { font-size: 14px; font-weight: 600; }
+  .tutor-card-sub { font-size: 12px; color: var(--text-tertiary); margin-top: 1px; }
+
+  /* Two-col layout */
+  .layout { display: grid; grid-template-columns: 220px 1fr; gap: 1rem; }
+  @media (max-width: 640px) { .layout { grid-template-columns: 1fr; } .tutor-cards { flex-direction: column; } }
+
+  /* Panel */
+  .panel { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 1rem; }
+  .panel-title {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-tertiary); margin-bottom: 12px;
+  }
+
+  /* Calendar */
+  .cal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .cal-month { font-size: 14px; font-weight: 600; }
+  .cal-nav { background: none; border: none; cursor: pointer; color: var(--text-secondary); font-size: 18px; padding: 2px 6px; border-radius: 4px; line-height: 1; }
+  .cal-nav:hover { background: var(--bg-secondary); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+  .cal-day-label { font-size: 10px; color: var(--text-tertiary); padding: 3px 0; font-weight: 600; }
+  .cal-day { font-size: 12px; padding: 6px 0; border-radius: 4px; cursor: pointer; color: var(--text-tertiary); transition: background 0.12s; }
+  .cal-day:hover:not(.empty):not(.past) { background: var(--bg-secondary); color: var(--text-primary); }
+  .cal-day.selected { background: var(--text-primary) !important; color: var(--bg-primary) !important; }
+  .cal-day.has-slots { color: var(--text-primary); font-weight: 600; }
+  .cal-day.past { color: var(--text-tertiary); cursor: default; opacity: 0.5; }
+  .cal-day.empty { cursor: default; }
+  .cal-day.today { border: 0.5px solid var(--border-strong); }
+
+  /* Slots */
+  .slots-grid { display: flex; flex-direction: column; gap: 6px; }
+  .slot { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border: 0.5px solid var(--border-light); border-radius: var(--radius-md); font-size: 13px; transition: all 0.15s; }
+  .slot.available { cursor: pointer; }
+  .slot.available:hover { border-color: var(--border-strong); background: var(--bg-secondary); }
+  .slot.booked { background: var(--bg-secondary); opacity: 0.7; }
+  .slot.buffer { background: var(--bg-tertiary); font-style: italic; font-size: 12px; opacity: 0.8; }
+  .slot.selected-slot { border: 2px solid var(--text-primary); background: var(--bg-secondary); }
+  .slot-time { font-weight: 600; }
+  .slot-badge { font-size: 11px; padding: 2px 8px; border-radius: var(--radius-md); }
+  .badge-avail { background: var(--bg-success); color: var(--text-success); }
+  .badge-booked { background: var(--bg-secondary); color: var(--text-tertiary); }
+  .badge-buffer { color: var(--text-tertiary); }
+  .no-slots { font-size: 13px; color: var(--text-tertiary); text-align: center; padding: 1.5rem 0; }
+
+  /* Subject picker */
+  .subject-picker { display: flex; gap: 6px; flex-wrap: wrap; }
+  .subject-btn { flex: 1; min-width: 70px; padding: 8px 10px; border: 0.5px solid var(--border-mid); border-radius: var(--radius-md); font-size: 13px; font-weight: 500; cursor: pointer; background: transparent; color: var(--text-secondary); font-family: var(--font); transition: all 0.15s; text-align: center; }
+  .subject-btn:hover { background: var(--bg-secondary); color: var(--text-primary); border-color: var(--border-strong); }
+  .subject-btn.selected { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); }
+
+  /* Form */
+  .form-card { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 1rem; }
+  .form-title { font-size: 15px; font-weight: 600; margin-bottom: 1rem; }
+  .form-summary { font-size: 13px; color: var(--text-secondary); margin-bottom: 1rem; padding: 8px 10px; background: var(--bg-secondary); border-radius: var(--radius-md); line-height: 1.5; }
+  .form-row { margin-bottom: 12px; }
+  .form-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px; display: block; }
+  .form-input { width: 100%; padding: 9px 11px; border: 0.5px solid var(--border-mid); border-radius: var(--radius-md); font-size: 14px; font-family: var(--font); background: var(--bg-primary); color: var(--text-primary); transition: border-color 0.15s; }
+  .form-input:focus { outline: none; border-color: var(--border-strong); }
+  .form-error { font-size: 12px; color: var(--text-danger); margin-top: 6px; display: none; }
+  .btn-row { display: flex; gap: 8px; justify-content: flex-end; margin-top: 1rem; }
+  .btn { padding: 9px 18px; border-radius: var(--radius-md); font-size: 13px; font-weight: 500; cursor: pointer; border: 0.5px solid var(--border-mid); background: transparent; color: var(--text-primary); font-family: var(--font); transition: background 0.12s; }
+  .btn:hover { background: var(--bg-secondary); }
+  .btn.btn-primary { background: var(--text-primary); color: var(--bg-primary); border-color: var(--text-primary); }
+  .btn.btn-primary:hover { opacity: 0.82; }
+  .btn.btn-danger { color: var(--text-danger); border-color: var(--border-danger); }
+  .btn.btn-danger:hover { background: var(--bg-danger); }
+
+  /* Success */
+  .success-card { text-align: center; padding: 2rem; border: 0.5px solid var(--border-success); border-radius: var(--radius-lg); background: var(--bg-success); margin-top: 1rem; }
+  .success-icon { font-size: 36px; color: var(--text-success); margin-bottom: 10px; }
+  .success-title { font-size: 16px; font-weight: 600; color: var(--text-success); margin-bottom: 6px; }
+  .success-detail { font-size: 13px; color: var(--text-secondary); margin-bottom: 1rem; line-height: 1.6; }
+  .success-cancel-btn { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: var(--radius-md); font-size: 12px; font-weight: 500; cursor: pointer; border: 0.5px solid var(--border-danger); background: transparent; color: var(--text-danger); font-family: var(--font); transition: background 0.12s; }
+  .success-cancel-btn:hover { background: var(--bg-danger); }
+
+  /* Cancelled card */
+  .cancelled-card { text-align: center; padding: 1.5rem; border: 0.5px solid var(--border-danger); border-radius: var(--radius-lg); background: var(--bg-danger); margin-top: 1rem; }
+  .cancelled-icon { font-size: 30px; color: var(--text-danger); margin-bottom: 8px; }
+  .cancelled-title { font-size: 15px; font-weight: 600; color: var(--text-danger); margin-bottom: 4px; }
+  .cancelled-detail { font-size: 13px; color: var(--text-secondary); }
+
+  /* Cancel lookup */
+  .cancel-lookup-card { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 1.25rem; margin-top: 1rem; }
+  .cancel-lookup-title { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .cancel-lookup-sub { font-size: 12px; color: var(--text-tertiary); margin-bottom: 10px; }
+  .cancel-lookup-row { display: flex; gap: 8px; align-items: center; }
+  .cancel-results { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+  .cancel-item { display: flex; align-items: center; justify-content: space-between; padding: 9px 11px; border: 0.5px solid var(--border-light); border-radius: var(--radius-md); font-size: 13px; }
+  .cancel-item-info { display: flex; flex-direction: column; gap: 2px; }
+  .cancel-item-main { font-weight: 600; font-size: 13px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .cancel-item-meta { font-size: 11px; color: var(--text-secondary); }
+  .no-results { font-size: 12px; color: var(--text-tertiary); text-align: center; padding: 10px 0; }
+
+  /* Tags */
+  .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.04em; text-transform: uppercase; }
+  .tag-subject { background: var(--bg-tertiary); color: var(--text-secondary); }
+  .tag-tutor-a { background: color-mix(in srgb, var(--tutor-a) 15%, var(--bg-primary)); color: var(--tutor-a); }
+  .tag-tutor-b { background: color-mix(in srgb, var(--tutor-b) 15%, var(--bg-primary)); color: var(--tutor-b); }
+
+  /* Admin */
+  .admin-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 640px) { .admin-layout { grid-template-columns: 1fr; } }
+
+  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 0.5px solid var(--border-light); }
+  .toggle-row:last-child { border-bottom: none; }
+  .toggle { position: relative; width: 36px; height: 20px; cursor: pointer; display: inline-block; }
+  .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+  .toggle-track { position: absolute; inset: 0; background: var(--bg-tertiary); border-radius: 10px; border: 0.5px solid var(--border-mid); transition: background 0.2s; }
+  .toggle input:checked + .toggle-track { background: var(--text-primary); }
+  .toggle-thumb { position: absolute; width: 14px; height: 14px; background: var(--bg-primary); border-radius: 50%; top: 2px; left: 3px; transition: left 0.2s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); pointer-events: none; }
+  .toggle input:checked ~ .toggle-thumb { left: 19px; }
+
+  /* Admin bookings grouped by date */
+  .date-group { margin-bottom: 14px; }
+  .date-group-header {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--text-tertiary);
+    padding: 6px 0 4px;
+    border-bottom: 0.5px solid var(--border-light);
+    margin-bottom: 6px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .date-group-count { font-size: 11px; color: var(--text-tertiary); font-weight: 500; }
+  .booking-item { padding: 10px 12px; border: 0.5px solid var(--border-light); border-radius: var(--radius-md); margin-bottom: 5px; display: flex; align-items: center; justify-content: space-between; font-size: 13px; }
+  .booking-name { font-weight: 600; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .booking-meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .empty-state { text-align: center; padding: 2rem; color: var(--text-tertiary); font-size: 13px; }
+
+  .section-label { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-tertiary); margin: 1rem 0 6px; }
+
+  /* PIN gate */
+  .pin-gate { text-align: center; padding: 2.5rem 1rem; }
+  .pin-title { font-size: 18px; font-weight: 600; margin-bottom: 6px; }
+  .pin-sub { font-size: 13px; color: var(--text-secondary); margin-bottom: 1.25rem; }
+
+  /* Admin header bar */
+  .admin-who-bar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border-radius: var(--radius-md);
+    margin-bottom: 1rem;
+    border: 0.5px solid var(--border-light);
+    background: var(--bg-secondary);
+    font-size: 13px;
+  }
+  .admin-who-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  .admin-slots-area { margin-top: 1rem; }
+  .hidden { display: none !important; }
+  .admin-slots-area.hidden { display: none !important; }
+
+  /* ===== LOADING OVERLAY ===== */
+  #loading-overlay {
+    position: fixed; inset: 0;
+    background: var(--bg-tertiary);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 9999;
+    font-family: var(--font);
+    transition: opacity 0.3s;
+  }
+  #loading-overlay.fade-out { opacity: 0; pointer-events: none; }
+  .spinner {
+    width: 28px; height: 28px;
+    border: 2px solid var(--border-mid);
+    border-top-color: var(--text-primary);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    margin: 0 auto 12px;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-size: 13px; color: var(--text-secondary); text-align: center; }
+  .error-box {
+    text-align: center; padding: 2rem 1.5rem;
+    background: var(--bg-primary); border-radius: var(--radius-lg);
+    border: 0.5px solid var(--border-danger);
+    max-width: 340px;
+  }
+  .error-box h3 { color: var(--text-danger); margin-bottom: 8px; font-size: 15px; }
+  .error-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
+  .error-box code { font-size: 11px; background: var(--bg-tertiary); padding: 2px 5px; border-radius: 4px; }
+</style>
+</head>
+<body>
+
+<!-- ===== LOADING OVERLAY — shown while connecting to Firebase ===== -->
+<div id="loading-overlay">
+  <div>
+    <div class="spinner"></div>
+    <div class="loading-text">Connecting to database…</div>
+  </div>
+</div>
+
+<div class="site-wrap">
+  <div class="nav">
+    <div class="nav-logo"><i class="ti ti-school" style="font-size:18px"></i> Book a Session</div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="showView('public')" id="tab-public">Book</button>
+      <button class="nav-tab" onclick="goAdmin()" id="tab-admin"><i class="ti ti-lock" style="font-size:12px;margin-right:3px"></i>Admin</button>
+    </div>
+  </div>
+
+  <div class="main-card">
+
+    <!-- ===== PUBLIC VIEW ===== -->
+    <div id="view-public">
+
+      <!-- Step 1: Choose tutor -->
+      <div class="tutor-select-section">
+        <div class="tutor-select-label">Choose your tutor</div>
+        <div class="tutor-cards" id="tutor-cards"></div>
+      </div>
+
+      <!-- Step 2+: Calendar & slots (hidden until tutor chosen) -->
+      <div id="booking-area" class="hidden">
+        <div class="layout">
+          <!-- Left col -->
+          <div>
+            <div class="panel">
+              <div class="panel-title">Pick a date</div>
+              <div class="cal-header">
+                <button class="cal-nav" onclick="changeMonth(-1)">&#8249;</button>
+                <span class="cal-month" id="cal-month-label"></span>
+                <button class="cal-nav" onclick="changeMonth(1)">&#8250;</button>
+              </div>
+              <div class="cal-grid" id="cal-grid"></div>
+            </div>
+
+            <!-- Cancel lookup -->
+            <div class="cancel-lookup-card">
+              <div class="cancel-lookup-title"><i class="ti ti-search" style="font-size:13px;margin-right:4px"></i>Cancel a booking</div>
+              <div class="cancel-lookup-sub">Enter your phone number to find and cancel your sessions</div>
+              <div class="cancel-lookup-row">
+                <input class="form-input" id="cancel-phone" type="tel" placeholder="+961 71 000 000" style="flex:1;font-size:13px">
+                <button class="btn btn-primary" onclick="lookupBookings()" style="white-space:nowrap;padding:9px 14px">Find</button>
+              </div>
+              <div class="cancel-results" id="cancel-results"></div>
+            </div>
+          </div>
+
+          <!-- Right col -->
+          <div>
+            <div class="panel">
+              <div class="panel-title" id="slots-panel-title">Select a date to see availability</div>
+              <div class="slots-grid" id="slots-grid"></div>
+            </div>
+
+            <!-- Booking form -->
+            <div class="form-card hidden" id="booking-form">
+              <div class="form-title">Complete your booking</div>
+              <div class="form-summary" id="booking-summary"></div>
+
+              <div class="form-row">
+                <label class="form-label">Subject <span style="color:var(--text-danger)">*</span></label>
+                <div class="subject-picker" id="subject-picker">
+                  <button class="subject-btn" onclick="selectSubject('Maths')">📐 Maths</button>
+                  <button class="subject-btn" onclick="selectSubject('Physique')">⚗️ Physique</button>
+                  <button class="subject-btn" onclick="selectSubject('SNT')">💻 SNT</button>
+                </div>
+              </div>
+              <div class="form-row">
+                <label class="form-label">Your full name <span style="color:var(--text-danger)">*</span></label>
+                <input class="form-input" id="f-name" type="text" placeholder="e.g. Sara Khalil">
+              </div>
+              <div class="form-row">
+                <label class="form-label">Phone number <span style="color:var(--text-danger)">*</span></label>
+                <input class="form-input" id="f-phone" type="tel" placeholder="e.g. +961 71 000 000" oninput="renderSlots()">
+              </div>
+              <div class="form-error" id="form-error"></div>
+              <div class="btn-row">
+                <button class="btn" onclick="cancelBookingForm()">Cancel</button>
+                <button class="btn btn-primary" onclick="confirmBooking()">Confirm booking</button>
+              </div>
+            </div>
+
+            <!-- Success -->
+            <div class="success-card hidden" id="success-card">
+              <div class="success-icon"><i class="ti ti-circle-check"></i></div>
+              <div class="success-title">Booking confirmed!</div>
+              <div class="success-detail" id="success-detail"></div>
+              <button class="success-cancel-btn" onclick="cancelLastBooking()">
+                <i class="ti ti-x"></i> Cancel this booking
+              </button>
+            </div>
+
+            <!-- Cancelled -->
+            <div class="cancelled-card hidden" id="cancelled-card">
+              <div class="cancelled-icon"><i class="ti ti-calendar-x"></i></div>
+              <div class="cancelled-title">Booking cancelled</div>
+              <div class="cancelled-detail" id="cancelled-detail"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /view-public -->
+
+    <!-- ===== ADMIN VIEW ===== -->
+    <div id="view-admin" class="hidden">
+      <!-- PIN gate -->
+      <div id="admin-gate" class="pin-gate">
+        <div class="pin-title"><i class="ti ti-shield-lock"></i> Admin access</div>
+        <div class="pin-sub">Enter your PIN to manage your availability and bookings</div>
+        <input class="form-input" id="pin-input" type="password" placeholder="PIN"
+          style="max-width:180px;margin:0 auto 12px;display:block;text-align:center"
+          onkeydown="if(event.key==='Enter')checkPin()">
+        <div class="form-error" id="pin-error" style="display:none;margin-bottom:8px">Incorrect PIN</div>
+        <button class="btn btn-primary" onclick="checkPin()">Enter</button>
+      </div>
+
+      <!-- Admin panel -->
+      <div id="admin-panel" class="hidden">
+        <!-- Who is logged in -->
+        <div class="admin-who-bar" id="admin-who-bar"></div>
+
+        <div class="admin-layout">
+          <!-- Availability -->
+          <div>
+            <div class="panel">
+              <div class="panel-title">My availability</div>
+              <div class="cal-header">
+                <button class="cal-nav" onclick="changeAdminMonth(-1)">&#8249;</button>
+                <span class="cal-month" id="admin-cal-month-label"></span>
+                <button class="cal-nav" onclick="changeAdminMonth(1)">&#8250;</button>
+              </div>
+              <div class="cal-grid" id="admin-cal-grid"></div>
+              <div id="admin-slots-area" class="admin-slots-area hidden">
+                <div class="panel-title" id="admin-slots-title" style="margin-top:1rem"></div>
+                <div class="section-label">Toggle available hours</div>
+                <div id="admin-toggle-list"></div>
+                <div class="btn-row" style="margin-top:12px">
+                  <button class="btn" onclick="clearDay()">Clear day</button>
+                  <button class="btn btn-primary" onclick="saveAvailability()">Save</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bookings + Settings -->
+          <div>
+            <div class="panel">
+              <div class="panel-title">My bookings</div>
+              <div id="admin-bookings-list"></div>
+            </div>
+
+            <div class="panel" style="margin-top:1rem">
+              <div class="panel-title">Settings</div>
+              <div class="section-label">Display name</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input class="form-input" id="admin-name-input" type="text" placeholder="Your name" style="flex:1">
+                <button class="btn btn-primary" onclick="saveName()" style="white-space:nowrap">Update</button>
+              </div>
+              <div id="name-saved" style="font-size:12px;color:var(--text-success);margin-top:6px;display:none"><i class="ti ti-check"></i> Name updated</div>
+
+              <div class="section-label" style="margin-top:1rem">Change PIN</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input class="form-input" id="new-pin" type="password" placeholder="New PIN" style="flex:1">
+                <button class="btn btn-primary" onclick="changePin()" style="white-space:nowrap">Update</button>
+              </div>
+              <div id="pin-saved" style="font-size:12px;color:var(--text-success);margin-top:6px;display:none"><i class="ti ti-check"></i> PIN updated</div>
+
+              <div class="section-label" style="margin-top:1.25rem">Session</div>
+              <button class="btn btn-danger" onclick="adminLogout()">
+                <i class="ti ti-logout"></i> Log out
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div><!-- /view-admin -->
+
+  </div>
+</div>
+
+<script>
+/* ================================================================
+   ✅ STEP 1 — PASTE YOUR FIREBASE CONFIG HERE
+   (Get it from: Firebase Console → Project Settings → Your Apps)
+   ================================================================ */
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyDN5qUjD-LTaiRd9oKH6RZdkbb5-MsQjvI",
+  authDomain:        "bookingatc-d3789.firebaseapp.com",
+  projectId:         "bookingatc-d3789",
+  storageBucket:     "bookingatc-d3789.firebasestorage.app",
+  messagingSenderId: "485117824396",
+  appId:             "1:485117824396:web:7c1ee03c57f1a222ba9aa9"
+};
+/* ================================================================ */
+
+const HOURS = ['08:00','10:00','12:00','14:00','16:00','18:00','20:00'];
+const SESSION_MINS = 90;
+const BUFFER_MINS  = 30;
+
+/* ---- FIREBASE INIT ---- */
+firebase.initializeApp(FIREBASE_CONFIG);
+const db      = firebase.firestore();
+const APP_DOC = db.collection('tutor_app').doc('v1');
+
+/* ---- STATE (UI state stays local; persistent data syncs via Firestore) ---- */
+let state = {
+  /* persistent — stored in Firestore */
+  tutors: [
+    { id: 't1', name: 'Tutor 1', pin: '1234' },
+    { id: 't2', name: 'Tutor 2', pin: '5678' }
+  ],
+  availability: {},   // key: availKey(tutorId, dateKey) → [slots]
+  bookings:     [],   // { id, tutorId, date, slot, subject, name, phone }
+
+  /* UI-only — never sent to Firestore */
+  currentMonth:      new Date().getMonth(),
+  currentYear:       new Date().getFullYear(),
+  adminMonth:        new Date().getMonth(),
+  adminYear:         new Date().getFullYear(),
+  selectedTutorId:   null,
+  selectedDate:      null,
+  selectedSlot:      null,
+  selectedSubject:   null,
+  lastBookingId:     null,
+  loggedInTutorId:   null,
+  adminSelectedDate: null,
+  adminDayDraft:     {}
+};
+
+/* ---- SAVE to Firestore (only the persistent slice) ---- */
+async function saveState() {
+  try {
+    await APP_DOC.set({
+      tutors:       state.tutors,
+      availability: state.availability,
+      bookings:     state.bookings
+    });
+  } catch(e) {
+    console.error('Firestore save failed:', e);
+  }
+}
+
+/* ---- RE-RENDER everything after a remote update ---- */
+function reRenderAll() {
+  renderTutorCards();
+  renderCalendar();
+  if (state.selectedDate)      renderSlots();
+  if (state.selectedDate && document.getElementById('booking-form') &&
+      !document.getElementById('booking-form').classList.contains('hidden')) {
+    /* keep form open but refresh slot status */
+    renderSlots();
+  }
+  if (state.loggedInTutorId) {
+    renderAdminCalendar();
+    renderAdminBookings();
+    if (state.adminSelectedDate) renderAdminToggles();
+  }
+}
+
+/* ---- REAL-TIME SYNC — listens for changes from ALL devices ---- */
+APP_DOC.onSnapshot((doc) => {
+  if (doc.exists) {
+    const data = doc.data();
+    state.tutors       = data.tutors       || state.tutors;
+    state.availability = data.availability || {};
+    state.bookings     = data.bookings     || [];
+  } else {
+    /* First ever load — initialise the Firestore document */
+    saveState();
+  }
+
+  /* Hide loading overlay, reveal app */
+  const overlay = document.getElementById('loading-overlay');
+  overlay.classList.add('fade-out');
+  setTimeout(() => overlay.style.display = 'none', 320);
+
+  reRenderAll();
+
+}, (err) => {
+  /* Connection / config error */
+  document.getElementById('loading-overlay').innerHTML = `
+    <div class="error-box">
+      <h3>⚠️ Could not connect</h3>
+      <p>Firebase is not configured yet.<br>
+      Open <code>index.html</code>, find <code>FIREBASE_CONFIG</code>
+      near the top of the &lt;script&gt; tag, and paste your project credentials.<br><br>
+      See <code>SETUP.md</code> for step-by-step instructions.</p>
+    </div>`;
+  console.error('Firestore error:', err);
+});
+
+/* ================================================================
+   All functions below are UNCHANGED from the original — only
+   saveState() and loadState() have been replaced above.
+   ================================================================ */
+
+function getTutor(id) { return state.tutors.find(t=>t.id===id); }
+function dateKey(y,m,d) { return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
+function todayKey() { const n=new Date(); return dateKey(n.getFullYear(),n.getMonth(),n.getDate()); }
+function isPast(y,m,d) { const n=new Date(); n.setHours(0,0,0,0); return new Date(y,m,d)<n; }
+function fmtDate(dk) { const [y,m,d]=dk.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'}); }
+function fmtDateShort(dk) { const [y,m,d]=dk.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'}); }
+function fmtDateMed(dk) { const [y,m,d]=dk.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric',year:'numeric'}); }
+function slotToMins(s) { const [h,m]=s.split(':').map(Number); return h*60+m; }
+function slotEndTime(s) {
+  const e=slotToMins(s)+SESSION_MINS;
+  return String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0');
+}
+function availKey(tid, dk) { return tid+'::'+dk; }
+
+function getBookingsForTutorDate(tid, dk) { return state.bookings.filter(b=>b.tutorId===tid&&b.date===dk); }
+function isSlotBooked(tid, dk, slot) { return state.bookings.some(b=>b.tutorId===tid&&b.date===dk&&b.slot===slot); }
+
+function isSlotInBuffer(tid, dk, slot, phone) {
+  const bookings = getBookingsForTutorDate(tid, dk);
+  const newStart = slotToMins(slot), newEnd = newStart+SESSION_MINS;
+  for (const b of bookings) {
+    const bStart=slotToMins(b.slot), bEnd=bStart+SESSION_MINS;
+    const conflicts = newStart<bEnd+BUFFER_MINS && newEnd>bStart-BUFFER_MINS;
+    if (conflicts && newStart!==bStart) {
+      if (phone && b.phone===phone) { if (!(newStart<bEnd&&newEnd>bStart)) continue; }
+      return true;
+    }
+  }
+  return false;
+}
+
+function getSlotStatus(tid, dk, slot, phone) {
+  const k = availKey(tid, dk);
+  if (!state.availability[k] || !state.availability[k].includes(slot)) return 'unavailable';
+  if (isSlotBooked(tid, dk, slot)) return 'booked';
+  if (isSlotInBuffer(tid, dk, slot, phone)) return 'buffer';
+  return 'available';
+}
+
+/* ---- TUTOR CARDS ---- */
+function renderTutorCards() {
+  const container = document.getElementById('tutor-cards');
+  container.innerHTML = state.tutors.map((t,i) => {
+    const letter = t.name.charAt(0).toUpperCase();
+    const colorClass = i===0 ? 'tutor-avatar-a' : 'tutor-avatar-b';
+    const selectedClass = state.selectedTutorId===t.id ? (i===0?'selected-a':'selected-b') : '';
+    const bookingCount = countUpcomingSlots(t.id);
+    return `<div class="tutor-card ${selectedClass}" onclick="selectTutor('${t.id}')">
+      <div class="tutor-avatar ${colorClass}">${letter}</div>
+      <div>
+        <div class="tutor-card-name">${t.name}</div>
+        <div class="tutor-card-sub">${bookingCount} slot${bookingCount!==1?'s':''} available</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function countUpcomingSlots(tid) {
+  const today = todayKey();
+  return Object.entries(state.availability)
+    .filter(([k,v]) => k.startsWith(tid+'::') && k.split('::')[1] >= today && v && v.length > 0)
+    .reduce((sum,[,v]) => sum + v.length, 0);
+}
+
+function selectTutor(tid) {
+  state.selectedTutorId = tid;
+  state.selectedDate = null;
+  state.selectedSlot = null;
+  state.selectedSubject = null;
+  document.getElementById('booking-area').classList.remove('hidden');
+  document.getElementById('booking-form').classList.add('hidden');
+  document.getElementById('success-card').classList.add('hidden');
+  document.getElementById('cancelled-card').classList.add('hidden');
+  renderTutorCards();
+  renderCalendar();
+  renderSlots();
+}
+
+/* ---- PUBLIC CALENDAR ---- */
+function renderCalendar() {
+  const {currentYear:y, currentMonth:m} = state;
+  document.getElementById('cal-month-label').textContent =
+    new Date(y,m,1).toLocaleDateString('en',{month:'long',year:'numeric'});
+  const days=['S','M','T','W','T','F','S'];
+  let html = days.map(d=>`<div class="cal-day-label">${d}</div>`).join('');
+  const firstDay = new Date(y,m,1).getDay();
+  for (let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
+  const total = new Date(y,m+1,0).getDate();
+  const td = todayKey();
+  for (let d=1;d<=total;d++) {
+    const dk=dateKey(y,m,d);
+    const past=isPast(y,m,d);
+    const k=availKey(state.selectedTutorId, dk);
+    const hasSlots=!past&&state.availability[k]&&state.availability[k].length>0;
+    const sel=state.selectedDate===dk;
+    const isToday=dk===td;
+    let cls='cal-day';
+    if(past) cls+=' past';
+    else if(sel) cls+=' selected';
+    else if(hasSlots) cls+=' has-slots';
+    if(isToday&&!sel) cls+=' today';
+    const click=!past?`onclick="selectDate('${dk}')"`:'';
+    html+=`<div class="${cls}" ${click}>${d}</div>`;
+  }
+  document.getElementById('cal-grid').innerHTML=html;
+}
+
+function selectDate(dk) {
+  state.selectedDate=dk; state.selectedSlot=null; state.selectedSubject=null;
+  document.getElementById('booking-form').classList.add('hidden');
+  document.getElementById('success-card').classList.add('hidden');
+  document.getElementById('cancelled-card').classList.add('hidden');
+  renderCalendar(); renderSlots();
+}
+
+function renderSlots() {
+  const dk=state.selectedDate;
+  const title=document.getElementById('slots-panel-title');
+  const grid=document.getElementById('slots-grid');
+  if (!dk) { title.textContent='Select a date to see availability'; grid.innerHTML=''; return; }
+  title.textContent=fmtDate(dk);
+  const tid=state.selectedTutorId;
+  const avail=state.availability[availKey(tid,dk)]||[];
+  if (avail.length===0) { grid.innerHTML='<div class="no-slots">No availability set for this day</div>'; return; }
+  let html='';
+  for (const slot of avail) {
+    const phone=document.getElementById('f-phone')?document.getElementById('f-phone').value.trim():'';
+    const status=getSlotStatus(tid,dk,slot,phone);
+    const endTime=slotEndTime(slot);
+    if (status==='available') {
+      const sel=state.selectedSlot===slot;
+      html+=`<div class="slot available${sel?' selected-slot':''}" onclick="selectSlot('${slot}')">
+        <span class="slot-time">${slot} – ${endTime}</span>
+        <span class="slot-badge badge-avail">Available</span>
+      </div>`;
+    } else if (status==='booked') {
+      html+=`<div class="slot booked">
+        <span class="slot-time">${slot} – ${endTime}</span>
+        <span class="slot-badge badge-booked">Booked</span>
+      </div>`;
+    } else if (status==='buffer') {
+      html+=`<div class="slot buffer">
+        <span class="slot-time">${slot} – ${endTime}</span>
+        <span class="slot-badge badge-buffer">30 min break</span>
+      </div>`;
+    }
+  }
+  grid.innerHTML=html||'<div class="no-slots">No available slots for this day</div>';
+}
+
+function selectSlot(slot) {
+  state.selectedSlot=slot; state.selectedSubject=null;
+  renderSlots();
+  const t=getTutor(state.selectedTutorId);
+  const tidx=state.tutors.findIndex(x=>x.id===state.selectedTutorId);
+  document.getElementById('booking-summary').innerHTML =
+    `📅 ${fmtDate(state.selectedDate)} &nbsp;·&nbsp; ${slot} – ${slotEndTime(slot)} &nbsp;·&nbsp; 1.5h session<br>
+     <span style="margin-top:4px;display:inline-block"><span class="tag ${tidx===0?'tag-tutor-a':'tag-tutor-b'}">${t.name}</span></span>`;
+  document.getElementById('booking-form').classList.remove('hidden');
+  document.getElementById('success-card').classList.add('hidden');
+  document.getElementById('cancelled-card').classList.add('hidden');
+  document.getElementById('f-name').value='';
+  document.getElementById('f-phone').value='';
+  document.getElementById('form-error').style.display='none';
+  document.querySelectorAll('.subject-btn').forEach(b=>b.classList.remove('selected'));
+}
+
+function selectSubject(s) {
+  state.selectedSubject=s;
+  document.querySelectorAll('.subject-btn').forEach(b=>b.classList.toggle('selected',b.textContent.includes(s)));
+}
+
+function cancelBookingForm() {
+  state.selectedSlot=null; state.selectedSubject=null;
+  document.getElementById('booking-form').classList.add('hidden');
+  renderSlots();
+}
+
+function confirmBooking() {
+  const name=document.getElementById('f-name').value.trim();
+  const phone=document.getElementById('f-phone').value.trim();
+  const err=document.getElementById('form-error');
+  if (!state.selectedSubject) { err.textContent='Please select a subject.'; err.style.display='block'; return; }
+  if (!name) { err.textContent='Please enter your name.'; err.style.display='block'; return; }
+  if (!phone) { err.textContent='Please enter your phone number.'; err.style.display='block'; return; }
+  err.style.display='none';
+  const tid=state.selectedTutorId, dk=state.selectedDate, slot=state.selectedSlot;
+  const status=getSlotStatus(tid,dk,slot,phone);
+  if (status==='booked')      { err.textContent='This slot was just booked. Please pick another.'; err.style.display='block'; return; }
+  if (status==='buffer')      { err.textContent='This slot is within 30 minutes of another booking.'; err.style.display='block'; return; }
+  if (status!=='available')   { err.textContent='This slot is no longer available.'; err.style.display='block'; return; }
+  const id=Date.now();
+  state.bookings.push({id, tutorId:tid, date:dk, slot, subject:state.selectedSubject, name, phone});
+  state.lastBookingId=id;
+  saveState(); // ← writes to Firestore, all devices update via onSnapshot
+  const t=getTutor(tid);
+  const tidx=state.tutors.findIndex(x=>x.id===tid);
+  document.getElementById('success-detail').innerHTML =
+    `<span class="tag tag-subject">${state.selectedSubject}</span> &nbsp;<span class="tag ${tidx===0?'tag-tutor-a':'tag-tutor-b'}">${t.name}</span><br><br>
+     <strong>${name}</strong><br>${fmtDate(dk)} · ${slot}–${slotEndTime(slot)}<br>We'll be in touch at ${phone}.`;
+  document.getElementById('booking-form').classList.add('hidden');
+  document.getElementById('success-card').classList.remove('hidden');
+  state.selectedSlot=null; state.selectedSubject=null;
+  renderCalendar(); renderSlots(); renderTutorCards();
+}
+
+/* ---- USER CANCELLATION ---- */
+function cancelLastBooking() {
+  const id=state.lastBookingId;
+  if (!id) return;
+  const b=state.bookings.find(x=>x.id===id);
+  if (!b) { document.getElementById('success-card').classList.add('hidden'); return; }
+  if (!confirm(`Cancel your ${b.subject} session on ${fmtDate(b.date)} at ${b.slot}?`)) return;
+  state.bookings=state.bookings.filter(x=>x.id!==id);
+  state.lastBookingId=null;
+  saveState();
+  document.getElementById('success-card').classList.add('hidden');
+  document.getElementById('cancelled-detail').textContent=`Your ${b.subject} session on ${fmtDate(b.date)} at ${b.slot} has been cancelled.`;
+  document.getElementById('cancelled-card').classList.remove('hidden');
+  renderCalendar(); renderSlots(); renderTutorCards();
+}
+
+function lookupBookings() {
+  const phone=document.getElementById('cancel-phone').value.trim();
+  const el=document.getElementById('cancel-results');
+  if (!phone) { el.innerHTML='<div class="no-results">Please enter your phone number.</div>'; return; }
+  const matches=state.bookings.filter(b=>b.phone===phone);
+  if (!matches.length) { el.innerHTML='<div class="no-results">No bookings found for this number.</div>'; return; }
+  const sorted=[...matches].sort((a,b)=>(a.date+a.slot)<(b.date+b.slot)?-1:1);
+  el.innerHTML=sorted.map(b=>{
+    const t=getTutor(b.tutorId);
+    const tidx=state.tutors.findIndex(x=>x.id===b.tutorId);
+    return `<div class="cancel-item">
+      <div class="cancel-item-info">
+        <div class="cancel-item-main">
+          <span class="tag tag-subject">${b.subject||'Session'}</span>
+          <span class="tag ${tidx===0?'tag-tutor-a':'tag-tutor-b'}">${t?t.name:b.tutorId}</span>
+          ${b.name}
+        </div>
+        <div class="cancel-item-meta">${fmtDateShort(b.date)} · ${b.slot}–${slotEndTime(b.slot)}</div>
+      </div>
+      <button class="btn btn-danger" onclick="userCancelBooking(${b.id})" style="padding:5px 10px;font-size:12px;white-space:nowrap">
+        <i class="ti ti-x"></i> Cancel
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function userCancelBooking(id) {
+  const b=state.bookings.find(x=>x.id===id);
+  if (!b) return;
+  if (!confirm(`Cancel your ${b.subject||'session'} on ${fmtDate(b.date)} at ${b.slot}?`)) return;
+  state.bookings=state.bookings.filter(x=>x.id!==id);
+  if (state.lastBookingId===id) {
+    state.lastBookingId=null;
+    document.getElementById('success-card').classList.add('hidden');
+    document.getElementById('cancelled-detail').textContent=`Your ${b.subject||'session'} on ${fmtDate(b.date)} at ${b.slot} has been cancelled.`;
+    document.getElementById('cancelled-card').classList.remove('hidden');
+  }
+  saveState();
+  renderCalendar(); renderSlots(); renderTutorCards();
+  lookupBookings();
+}
+
+function changeMonth(dir) {
+  state.currentMonth+=dir;
+  if(state.currentMonth>11){state.currentMonth=0;state.currentYear++;}
+  if(state.currentMonth<0){state.currentMonth=11;state.currentYear--;}
+  renderCalendar(); renderSlots();
+}
+
+/* ---- VIEWS ---- */
+function showView(v) {
+  document.getElementById('view-public').classList.toggle('hidden',v!=='public');
+  document.getElementById('view-admin').classList.toggle('hidden',v!=='admin');
+  document.getElementById('tab-public').classList.toggle('active',v==='public');
+  document.getElementById('tab-admin').classList.toggle('active',v==='admin');
+}
+
+function goAdmin() {
+  showView('admin');
+  if (state.loggedInTutorId) showAdminPanel();
+  else {
+    document.getElementById('admin-gate').classList.remove('hidden');
+    document.getElementById('admin-panel').classList.add('hidden');
+  }
+}
+
+/* ---- ADMIN AUTH ---- */
+function checkPin() {
+  const pin=document.getElementById('pin-input').value;
+  const matched=state.tutors.find(t=>t.pin===pin);
+  if (matched) {
+    state.loggedInTutorId=matched.id;
+    document.getElementById('pin-error').style.display='none';
+    showAdminPanel();
+  } else {
+    document.getElementById('pin-error').style.display='block';
+  }
+}
+
+function showAdminPanel() {
+  document.getElementById('admin-gate').classList.add('hidden');
+  document.getElementById('admin-panel').classList.remove('hidden');
+  const t=getTutor(state.loggedInTutorId);
+  const tidx=state.tutors.findIndex(x=>x.id===state.loggedInTutorId);
+  const color=tidx===0?'var(--tutor-a)':'var(--tutor-b)';
+  document.getElementById('admin-who-bar').innerHTML=
+    `<div class="admin-who-dot" style="background:${color}"></div>
+     <span>Logged in as <strong>${t.name}</strong></span>`;
+  document.getElementById('admin-name-input').value=t.name;
+  renderAdminCalendar();
+  renderAdminBookings();
+}
+
+function adminLogout() {
+  state.loggedInTutorId=null;
+  document.getElementById('pin-input').value='';
+  showView('public');
+}
+
+/* ---- ADMIN CALENDAR ---- */
+function changeAdminMonth(dir) {
+  state.adminMonth+=dir;
+  if(state.adminMonth>11){state.adminMonth=0;state.adminYear++;}
+  if(state.adminMonth<0){state.adminMonth=11;state.adminYear--;}
+  renderAdminCalendar();
+}
+
+function renderAdminCalendar() {
+  const {adminYear:y,adminMonth:m}=state;
+  document.getElementById('admin-cal-month-label').textContent=
+    new Date(y,m,1).toLocaleDateString('en',{month:'long',year:'numeric'});
+  const days=['S','M','T','W','T','F','S'];
+  let html=days.map(d=>`<div class="cal-day-label">${d}</div>`).join('');
+  const firstDay=new Date(y,m,1).getDay();
+  for(let i=0;i<firstDay;i++) html+=`<div class="cal-day empty"></div>`;
+  const total=new Date(y,m+1,0).getDate();
+  for(let d=1;d<=total;d++){
+    const dk=dateKey(y,m,d);
+    const k=availKey(state.loggedInTutorId,dk);
+    const hasSlots=state.availability[k]&&state.availability[k].length>0;
+    const sel=state.adminSelectedDate===dk;
+    let cls='cal-day'+(sel?' selected':hasSlots?' has-slots':'');
+    html+=`<div class="${cls}" onclick="adminSelectDate('${dk}')">${d}</div>`;
+  }
+  document.getElementById('admin-cal-grid').innerHTML=html;
+}
+
+function adminSelectDate(dk) {
+  state.adminSelectedDate=dk;
+  state.adminDayDraft={};
+  const avail=state.availability[availKey(state.loggedInTutorId,dk)]||[];
+  avail.forEach(h=>state.adminDayDraft[h]=true);
+  renderAdminCalendar();
+  const [y,m,d]=dk.split('-').map(Number);
+  document.getElementById('admin-slots-title').textContent=
+    new Date(y,m-1,d).toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric'});
+  renderAdminToggles();
+  document.getElementById('admin-slots-area').classList.remove('hidden');
+}
+
+function renderAdminToggles() {
+  const dk=state.adminSelectedDate;
+  const booked=getBookingsForTutorDate(state.loggedInTutorId,dk).map(b=>b.slot);
+  let html='';
+  for (const h of HOURS) {
+    const checked=!!state.adminDayDraft[h];
+    const isBooked=booked.includes(h);
+    html+=`<div class="toggle-row">
+      <span style="font-size:13px">${h}–${slotEndTime(h)}${isBooked?' <span style="font-size:11px;color:var(--text-tertiary)">(booked)</span>':''}</span>
+      <label class="toggle" ${isBooked?'title="Cannot remove — already booked"':''}>
+        <input type="checkbox" ${checked?'checked':''} ${isBooked?'disabled':''} onchange="toggleHour('${h}',this.checked)">
+        <div class="toggle-track"></div><div class="toggle-thumb"></div>
+      </label>
+    </div>`;
+  }
+  document.getElementById('admin-toggle-list').innerHTML=html;
+}
+
+function toggleHour(h,on) { if(on) state.adminDayDraft[h]=true; else delete state.adminDayDraft[h]; }
+
+function saveAvailability() {
+  const dk=state.adminSelectedDate;
+  const k=availKey(state.loggedInTutorId,dk);
+  const saved=HOURS.filter(h=>state.adminDayDraft[h]);
+  if(saved.length===0) delete state.availability[k];
+  else state.availability[k]=saved;
+  saveState(); // ← writes to Firestore, students see updated slots instantly
+  renderAdminCalendar();
+  renderAdminToggles();
+}
+
+function clearDay() {
+  const dk=state.adminSelectedDate;
+  const booked=getBookingsForTutorDate(state.loggedInTutorId,dk).map(b=>b.slot);
+  state.adminDayDraft={};
+  booked.forEach(s=>state.adminDayDraft[s]=true);
+  renderAdminToggles();
+}
+
+/* ---- ADMIN BOOKINGS (grouped by date) ---- */
+function renderAdminBookings() {
+  const list=document.getElementById('admin-bookings-list');
+  const myBookings=state.bookings.filter(b=>b.tutorId===state.loggedInTutorId);
+  if (!myBookings.length) {
+    list.innerHTML='<div class="empty-state"><i class="ti ti-calendar-off" style="font-size:24px;display:block;margin-bottom:6px"></i>No bookings yet</div>';
+    return;
+  }
+  const byDate={};
+  for (const b of myBookings) {
+    if (!byDate[b.date]) byDate[b.date]=[];
+    byDate[b.date].push(b);
+  }
+  const sortedDates=Object.keys(byDate).sort();
+  let html='';
+  for (const dk of sortedDates) {
+    const bookings=byDate[dk].sort((a,b)=>slotToMins(a.slot)-slotToMins(b.slot));
+    const count=bookings.length;
+    html+=`<div class="date-group">
+      <div class="date-group-header">
+        <span>${fmtDateMed(dk)}</span>
+        <span class="date-group-count">${count} booking${count!==1?'s':''}</span>
+      </div>`;
+    for (const b of bookings) {
+      html+=`<div class="booking-item">
+        <div>
+          <div class="booking-name">
+            <span class="tag tag-subject">${b.subject||'—'}</span>
+            ${b.name}
+          </div>
+          <div class="booking-meta">${b.slot}–${slotEndTime(b.slot)} · ${b.phone}</div>
+        </div>
+        <button class="btn btn-danger" onclick="adminDeleteBooking(${b.id})" style="padding:5px 10px;font-size:12px">
+          <i class="ti ti-trash"></i>
+        </button>
+      </div>`;
+    }
+    html+=`</div>`;
+  }
+  list.innerHTML=html;
+}
+
+function adminDeleteBooking(id) {
+  if(!confirm('Remove this booking?')) return;
+  state.bookings=state.bookings.filter(b=>b.id!==id);
+  saveState();
+  renderAdminBookings();
+}
+
+/* ---- ADMIN SETTINGS ---- */
+function saveName() {
+  const name=document.getElementById('admin-name-input').value.trim();
+  if (!name) return;
+  const t=getTutor(state.loggedInTutorId);
+  if (t) t.name=name;
+  saveState();
+  showAdminPanel();
+  renderTutorCards();
+  const el=document.getElementById('name-saved');
+  el.style.display='block'; setTimeout(()=>el.style.display='none',2500);
+}
+
+function changePin() {
+  const np=document.getElementById('new-pin').value.trim();
+  if (!np) return;
+  const t=getTutor(state.loggedInTutorId);
+  if (t) t.pin=np;
+  saveState();
+  document.getElementById('new-pin').value='';
+  const el=document.getElementById('pin-saved');
+  el.style.display='block'; setTimeout(()=>el.style.display='none',2500);
+}
+
+/* Initial renders happen inside the onSnapshot callback above,
+   once Firebase confirms the connection and sends data. */
+</script>
+</body>
+</html>
