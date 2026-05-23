@@ -513,8 +513,8 @@ const APP_DOC = db.collection('tutor_app').doc('v1');
 let state = {
   /* persistent — stored in Firestore */
   tutors: [
-    { id: 't1', name: 'Tutor 1', pin: '1234' },
-    { id: 't2', name: 'Tutor 2', pin: '5678' }
+    { id: 't1', name: 'Alexandre Salim', pin: '2007' },
+    { id: 't2', name: 'Chloe Maalouf', pin: '2006' }
   ],
   availability: {},   // key: availKey(tutorId, dateKey) → [slots]
   bookings:     [],   // { id, tutorId, date, slot, subject, name, phone }
