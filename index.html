@@ -523,8 +523,8 @@ const APP_DOC = db.collection('tutor_app').doc('v1');
 let state = {
   /* persistent — stored in Firestore */
   tutors: [
-    { id: 't1', name: 'Alexandre Salim', username: 'alexandre', pin: '2007' },
-    { id: 't2', name: 'Chloe Maalouf',   username: 'chloe',     pin: '2006' }
+    { id: 't1', name: 'Alexandre Salim', username: 'alexandre salim', pin: 'A2l0e0x7' },
+    { id: 't2', name: 'Chloe Maalouf',   username: 'chloe maalouf',   pin: 'CloCloGymBro' }
   ],
   availability: {},   // key: availKey(tutorId, dateKey) → [slots]
   bookings:     [],   // { id, tutorId, date, slot, subject, name, phone }
@@ -580,8 +580,8 @@ APP_DOC.onSnapshot((doc) => {
     const data = doc.data();
     // Merge usernames in case old Firestore data doesn't have them
     const defaults = [
-      { username: 'alexandre' },
-      { username: 'chloe' }
+      { username: 'alexandre salim' },
+      { username: 'chloe maalouf' }
     ];
     state.tutors = (data.tutors || state.tutors).map((t, i) => ({
       username: defaults[i]?.username,
@@ -1172,9 +1172,6 @@ function saveName() {
 function saveUsername() {
   const username=document.getElementById('admin-username-input').value.trim().toLowerCase();
   if (!username) return;
-  if (username.includes(' ')) {
-    alert('Username cannot contain spaces.'); return;
-  }
   const t=getTutor(state.loggedInTutorId);
   if (t) t.username=username;
   saveState();
