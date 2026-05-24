@@ -310,7 +310,7 @@
     <div class="nav-logo"><i class="ti ti-school" style="font-size:18px"></i> Book a Session</div>
     <div class="nav-tabs">
       <button class="nav-tab active" onclick="showView('public')" id="tab-public">Book</button>
-      <button class="nav-tab" onclick="goAdmin()" id="tab-admin"><i class="ti ti-lock" style="font-size:12px;margin-right:3px"></i>Admin</button>
+      <button class="nav-tab" onclick="goAdmin()" id="tab-admin" style="display:none"><i class="ti ti-lock" style="font-size:12px;margin-right:3px"></i>Admin</button>
     </div>
   </div>
 
@@ -410,15 +410,18 @@
 
     <!-- ===== ADMIN VIEW ===== -->
     <div id="view-admin" class="hidden">
-      <!-- PIN gate -->
+      <!-- Login gate -->
       <div id="admin-gate" class="pin-gate">
         <div class="pin-title"><i class="ti ti-shield-lock"></i> Admin access</div>
-        <div class="pin-sub">Enter your PIN to manage your availability and bookings</div>
-        <input class="form-input" id="pin-input" type="password" placeholder="PIN"
-          style="max-width:180px;margin:0 auto 12px;display:block;text-align:center"
-          onkeydown="if(event.key==='Enter')checkPin()">
-        <div class="form-error" id="pin-error" style="display:none;margin-bottom:8px">Incorrect PIN</div>
-        <button class="btn btn-primary" onclick="checkPin()">Enter</button>
+        <div class="pin-sub">Enter your credentials to manage availability and bookings</div>
+        <input class="form-input" id="login-username" type="text" placeholder="Username"
+          style="max-width:220px;margin:0 auto 8px;display:block;text-align:center"
+          onkeydown="if(event.key==='Enter')checkLogin()">
+        <input class="form-input" id="login-password" type="password" placeholder="Password"
+          style="max-width:220px;margin:0 auto 12px;display:block;text-align:center"
+          onkeydown="if(event.key==='Enter')checkLogin()">
+        <div class="form-error" id="login-error" style="display:none;margin-bottom:8px;max-width:280px;margin-left:auto;margin-right:auto;text-align:center;line-height:1.4"></div>
+        <button class="btn btn-primary" onclick="checkLogin()">Sign in</button>
       </div>
 
       <!-- Admin panel -->
@@ -465,12 +468,19 @@
               </div>
               <div id="name-saved" style="font-size:12px;color:var(--text-success);margin-top:6px;display:none"><i class="ti ti-check"></i> Name updated</div>
 
-              <div class="section-label" style="margin-top:1rem">Change PIN</div>
+              <div class="section-label" style="margin-top:1rem">Username</div>
               <div style="display:flex;gap:8px;align-items:center">
-                <input class="form-input" id="new-pin" type="password" placeholder="New PIN" style="flex:1">
+                <input class="form-input" id="admin-username-input" type="text" placeholder="Your username" style="flex:1">
+                <button class="btn btn-primary" onclick="saveUsername()" style="white-space:nowrap">Update</button>
+              </div>
+              <div id="username-saved" style="font-size:12px;color:var(--text-success);margin-top:6px;display:none"><i class="ti ti-check"></i> Username updated</div>
+
+              <div class="section-label" style="margin-top:1rem">Change Password</div>
+              <div style="display:flex;gap:8px;align-items:center">
+                <input class="form-input" id="new-pin" type="password" placeholder="New password" style="flex:1">
                 <button class="btn btn-primary" onclick="changePin()" style="white-space:nowrap">Update</button>
               </div>
-              <div id="pin-saved" style="font-size:12px;color:var(--text-success);margin-top:6px;display:none"><i class="ti ti-check"></i> PIN updated</div>
+              <div id="pin-saved" style="font-size:12px;color:var(--text-success);margin-top:6px;display:none"><i class="ti ti-check"></i> Password updated</div>
 
               <div class="section-label" style="margin-top:1.25rem">Session</div>
               <button class="btn btn-danger" onclick="adminLogout()">
@@ -513,8 +523,8 @@ const APP_DOC = db.collection('tutor_app').doc('v1');
 let state = {
   /* persistent — stored in Firestore */
   tutors: [
-    { id: 't1', name: 'Alexandre Salim', pin: '2007' },
-    { id: 't2', name: 'Chloe Maalouf', pin: '2006' }
+    { id: 't1', name: 'Alexandre Salim', username: 'alexandre', pin: '2007' },
+    { id: 't2', name: 'Chloe Maalouf',   username: 'chloe',     pin: '2006' }
   ],
   availability: {},   // key: availKey(tutorId, dateKey) → [slots]
   bookings:     [],   // { id, tutorId, date, slot, subject, name, phone }
@@ -568,7 +578,15 @@ function reRenderAll() {
 APP_DOC.onSnapshot((doc) => {
   if (doc.exists) {
     const data = doc.data();
-    state.tutors       = data.tutors       || state.tutors;
+    // Merge usernames in case old Firestore data doesn't have them
+    const defaults = [
+      { username: 'alexandre' },
+      { username: 'chloe' }
+    ];
+    state.tutors = (data.tutors || state.tutors).map((t, i) => ({
+      username: defaults[i]?.username,
+      ...t
+    }));
     state.availability = data.availability || {};
     state.bookings     = data.bookings     || [];
   } else {
@@ -886,21 +904,105 @@ function goAdmin() {
   else {
     document.getElementById('admin-gate').classList.remove('hidden');
     document.getElementById('admin-panel').classList.add('hidden');
+    document.getElementById('login-error').style.display='none';
   }
 }
 
+/* ---- ADMIN SECRET ACCESS — only via ?admin URL param or Ctrl+Shift+A ---- */
+function initAdminAccess() {
+  const params = new URLSearchParams(window.location.search);
+  if (params.has('admin')) {
+    document.getElementById('tab-admin').style.display = '';
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && e.key === 'A') {
+      document.getElementById('tab-admin').style.display = '';
+      goAdmin();
+    }
+  });
+}
+initAdminAccess();
+
+/* ---- RATE LIMITING ---- */
+let loginAttempts = parseInt(localStorage.getItem('login_attempts') || '0');
+let lockoutUntil  = parseInt(localStorage.getItem('lockout_until')  || '0');
+let lockoutTimer  = null;
+
+function showLockoutCountdown() {
+  const el = document.getElementById('login-error');
+  if (Date.now() >= lockoutUntil) {
+    clearInterval(lockoutTimer); lockoutTimer = null;
+    loginAttempts = 0;
+    localStorage.removeItem('login_attempts');
+    localStorage.removeItem('lockout_until');
+    el.style.display = 'none';
+    return;
+  }
+  const secs = Math.ceil((lockoutUntil - Date.now()) / 1000);
+  const m = Math.floor(secs / 60), s = secs % 60;
+  el.textContent = `Too many failed attempts. Try again in ${m}:${String(s).padStart(2,'0')}.`;
+  el.style.display = 'block';
+  if (!lockoutTimer) lockoutTimer = setInterval(showLockoutCountdown, 1000);
+}
+
+/* ---- SESSION TIMEOUT (30 min inactivity) ---- */
+let sessionTimeout = null;
+function resetSessionTimeout() {
+  clearTimeout(sessionTimeout);
+  if (!state.loggedInTutorId) return;
+  sessionTimeout = setTimeout(() => {
+    adminLogout();
+    alert('You have been automatically logged out after 30 minutes of inactivity.');
+  }, 30 * 60 * 1000);
+}
+document.addEventListener('click', resetSessionTimeout);
+document.addEventListener('keydown', resetSessionTimeout);
+
 /* ---- ADMIN AUTH ---- */
-function checkPin() {
-  const pin=document.getElementById('pin-input').value;
-  const matched=state.tutors.find(t=>t.pin===pin);
+function checkLogin() {
+  // Check lockout first
+  if (Date.now() < lockoutUntil) { showLockoutCountdown(); return; }
+
+  const username = (document.getElementById('login-username').value || '').trim().toLowerCase();
+  const password = (document.getElementById('login-password').value || '').trim();
+  const err      = document.getElementById('login-error');
+
+  if (!username || !password) {
+    err.textContent = 'Please enter both username and password.';
+    err.style.display = 'block'; return;
+  }
+
+  const matched = state.tutors.find(t =>
+    (t.username || '').toLowerCase() === username && t.pin === password
+  );
+
   if (matched) {
-    state.loggedInTutorId=matched.id;
-    document.getElementById('pin-error').style.display='none';
+    loginAttempts = 0;
+    localStorage.removeItem('login_attempts');
+    localStorage.removeItem('lockout_until');
+    state.loggedInTutorId = matched.id;
+    err.style.display = 'none';
+    resetSessionTimeout();
     showAdminPanel();
   } else {
-    document.getElementById('pin-error').style.display='block';
+    loginAttempts++;
+    localStorage.setItem('login_attempts', loginAttempts);
+    const remaining = 5 - loginAttempts;
+    if (loginAttempts >= 5) {
+      lockoutUntil = Date.now() + 15 * 60 * 1000;
+      localStorage.setItem('lockout_until', lockoutUntil);
+      loginAttempts = 0;
+      localStorage.removeItem('login_attempts');
+      showLockoutCountdown();
+    } else {
+      err.textContent = `Incorrect credentials. ${remaining} attempt${remaining !== 1 ? 's' : ''} remaining before lockout.`;
+      err.style.display = 'block';
+    }
   }
 }
+
+// Keep old checkPin for backwards compat (not used in UI)
+function checkPin() { checkLogin(); }
 
 function showAdminPanel() {
   document.getElementById('admin-gate').classList.add('hidden');
@@ -912,13 +1014,16 @@ function showAdminPanel() {
     `<div class="admin-who-dot" style="background:${color}"></div>
      <span>Logged in as <strong>${t.name}</strong></span>`;
   document.getElementById('admin-name-input').value=t.name;
+  document.getElementById('admin-username-input').value=t.username||'';
   renderAdminCalendar();
   renderAdminBookings();
 }
 
 function adminLogout() {
+  clearTimeout(sessionTimeout);
   state.loggedInTutorId=null;
-  document.getElementById('pin-input').value='';
+  document.getElementById('login-username').value='';
+  document.getElementById('login-password').value='';
   showView('public');
 }
 
@@ -1061,6 +1166,19 @@ function saveName() {
   showAdminPanel();
   renderTutorCards();
   const el=document.getElementById('name-saved');
+  el.style.display='block'; setTimeout(()=>el.style.display='none',2500);
+}
+
+function saveUsername() {
+  const username=document.getElementById('admin-username-input').value.trim().toLowerCase();
+  if (!username) return;
+  if (username.includes(' ')) {
+    alert('Username cannot contain spaces.'); return;
+  }
+  const t=getTutor(state.loggedInTutorId);
+  if (t) t.username=username;
+  saveState();
+  const el=document.getElementById('username-saved');
   el.style.display='block'; setTimeout(()=>el.style.display='none',2500);
 }
 
