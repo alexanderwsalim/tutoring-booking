@@ -544,16 +544,118 @@ let state = {
   adminDayDraft:     {}
 };
 
-/* ---- SAVE to Firestore (only the persistent slice) ---- */
-async function saveState() {
+/* ---- FIRESTORE WRITE HELPERS ----
+   Important fix:
+   We no longer save the whole app state for every action.
+   Old tabs/clients must not overwrite availability or passwords when they only book/cancel.
+---- */
+
+async function initializeStateDoc() {
   try {
     await APP_DOC.set({
       tutors:       state.tutors,
       availability: state.availability,
       bookings:     state.bookings
-    });
+    }, { merge: true });
   } catch(e) {
-    console.error('Firestore save failed:', e);
+    console.error('Firestore initialize failed:', e);
+    alert('Could not initialize the database. Please try again.');
+  }
+}
+
+async function saveAvailabilityForDay(tutorId, date, slots) {
+  const k = availKey(tutorId, date);
+  try {
+    if (slots.length === 0) {
+      await APP_DOC.update({
+        [`availability.${k}`]: firebase.firestore.FieldValue.delete()
+      });
+      delete state.availability[k];
+    } else {
+      await APP_DOC.set({
+        availability: {
+          [k]: slots
+        }
+      }, { merge: true });
+      state.availability[k] = slots;
+    }
+  } catch(e) {
+    console.error('Availability save failed:', e);
+    alert('Could not save availability. Please refresh and try again.');
+  }
+}
+
+async function addBookingSafely(booking) {
+  try {
+    await db.runTransaction(async (transaction) => {
+      const snap = await transaction.get(APP_DOC);
+      const data = snap.exists ? snap.data() : {};
+      const bookings = Array.isArray(data.bookings) ? [...data.bookings] : [];
+
+      const alreadyBooked = bookings.some(b =>
+        b.tutorId === booking.tutorId &&
+        b.date === booking.date &&
+        b.slot === booking.slot
+      );
+
+      if (alreadyBooked) {
+        throw new Error('This slot was just booked by someone else.');
+      }
+
+      bookings.push(booking);
+      transaction.set(APP_DOC, { bookings }, { merge: true });
+      state.bookings = bookings;
+    });
+    return true;
+  } catch(e) {
+    console.error('Booking save failed:', e);
+    alert(e.message || 'Could not save booking. Please refresh and try again.');
+    return false;
+  }
+}
+
+async function removeBookingSafely(id) {
+  let removedBooking = null;
+  try {
+    await db.runTransaction(async (transaction) => {
+      const snap = await transaction.get(APP_DOC);
+      const data = snap.exists ? snap.data() : {};
+      const bookings = Array.isArray(data.bookings) ? [...data.bookings] : [];
+
+      removedBooking = bookings.find(b => b.id === id) || null;
+      const nextBookings = bookings.filter(b => b.id !== id);
+
+      transaction.set(APP_DOC, { bookings: nextBookings }, { merge: true });
+      state.bookings = nextBookings;
+    });
+    return removedBooking;
+  } catch(e) {
+    console.error('Booking removal failed:', e);
+    alert('Could not cancel booking. Please refresh and try again.');
+    return null;
+  }
+}
+
+async function updateTutorFieldSafely(field, value) {
+  const tutorId = state.loggedInTutorId;
+  try {
+    await db.runTransaction(async (transaction) => {
+      const snap = await transaction.get(APP_DOC);
+      const data = snap.exists ? snap.data() : {};
+      const tutors = Array.isArray(data.tutors) ? [...data.tutors] : [...state.tutors];
+
+      const idx = tutors.findIndex(t => t.id === tutorId);
+      if (idx === -1) throw new Error('Tutor not found.');
+
+      tutors[idx] = { ...tutors[idx], [field]: value };
+      transaction.set(APP_DOC, { tutors }, { merge: true });
+      state.tutors = tutors;
+    });
+    return true;
+  } catch(e) {
+    console.error('Tutor settings save failed:', e);
+    alert('Could not update settings. Please refresh and try again.');
+    return false;
   }
 }
 
@@ -591,7 +693,7 @@ APP_DOC.onSnapshot((doc) => {
     state.bookings     = data.bookings     || [];
   } else {
     /* First ever load — initialise the Firestore document */
-    saveState();
+    initializeStateDoc();
   }
 
   /* Hide loading overlay, reveal app */
@@ -615,8 +717,8 @@ APP_DOC.onSnapshot((doc) => {
 });
 
 /* ================================================================
-   All functions below are UNCHANGED from the original — only
-   saveState() and loadState() have been replaced above.
+   Functions below now use safer Firestore writes: bookings, availability,
+   and tutor settings are saved separately to avoid stale-tab overwrites.
    ================================================================ */
 
 function getTutor(id) { return state.tutors.find(t=>t.id===id); }
@@ -797,7 +899,7 @@ function cancelBookingForm() {
   renderSlots();
 }
 
-function confirmBooking() {
+async function confirmBooking() {
   const name=document.getElementById('f-name').value.trim();
   const phone=document.getElementById('f-phone').value.trim();
   const err=document.getElementById('form-error');
@@ -810,10 +912,14 @@ function confirmBooking() {
   if (status==='booked')      { err.textContent='This slot was just booked. Please pick another.'; err.style.display='block'; return; }
   if (status==='buffer')      { err.textContent='This slot is within 30 minutes of another booking.'; err.style.display='block'; return; }
   if (status!=='available')   { err.textContent='This slot is no longer available.'; err.style.display='block'; return; }
+
   const id=Date.now();
-  state.bookings.push({id, tutorId:tid, date:dk, slot, subject:state.selectedSubject, name, phone});
+  const newBooking = {id, tutorId:tid, date:dk, slot, subject:state.selectedSubject, name, phone};
+
+  const saved = await addBookingSafely(newBooking);
+  if (!saved) return;
+
   state.lastBookingId=id;
-  saveState(); // ← writes to Firestore, all devices update via onSnapshot
   const t=getTutor(tid);
   const tidx=state.tutors.findIndex(x=>x.id===tid);
   document.getElementById('success-detail').innerHTML =
@@ -826,15 +932,17 @@ function confirmBooking() {
 }
 
 /* ---- USER CANCELLATION ---- */
-function cancelLastBooking() {
+async function cancelLastBooking() {
   const id=state.lastBookingId;
   if (!id) return;
   const b=state.bookings.find(x=>x.id===id);
   if (!b) { document.getElementById('success-card').classList.add('hidden'); return; }
   if (!confirm(`Cancel your ${b.subject} session on ${fmtDate(b.date)} at ${b.slot}?`)) return;
-  state.bookings=state.bookings.filter(x=>x.id!==id);
+
+  const removed = await removeBookingSafely(id);
+  if (!removed) return;
+
   state.lastBookingId=null;
-  saveState();
   document.getElementById('success-card').classList.add('hidden');
   document.getElementById('cancelled-detail').textContent=`Your ${b.subject} session on ${fmtDate(b.date)} at ${b.slot} has been cancelled.`;
   document.getElementById('cancelled-card').classList.remove('hidden');
@@ -867,18 +975,20 @@ function lookupBookings() {
   }).join('');
 }
 
-function userCancelBooking(id) {
+async function userCancelBooking(id) {
   const b=state.bookings.find(x=>x.id===id);
   if (!b) return;
   if (!confirm(`Cancel your ${b.subject||'session'} on ${fmtDate(b.date)} at ${b.slot}?`)) return;
-  state.bookings=state.bookings.filter(x=>x.id!==id);
+
+  const removed = await removeBookingSafely(id);
+  if (!removed) return;
+
   if (state.lastBookingId===id) {
     state.lastBookingId=null;
     document.getElementById('success-card').classList.add('hidden');
     document.getElementById('cancelled-detail').textContent=`Your ${b.subject||'session'} on ${fmtDate(b.date)} at ${b.slot} has been cancelled.`;
     document.getElementById('cancelled-card').classList.remove('hidden');
   }
-  saveState();
   renderCalendar(); renderSlots(); renderTutorCards();
   lookupBookings();
 }
@@ -1088,13 +1198,10 @@ function renderAdminToggles() {
 
 function toggleHour(h,on) { if(on) state.adminDayDraft[h]=true; else delete state.adminDayDraft[h]; }
 
-function saveAvailability() {
+async function saveAvailability() {
   const dk=state.adminSelectedDate;
-  const k=availKey(state.loggedInTutorId,dk);
   const saved=HOURS.filter(h=>state.adminDayDraft[h]);
-  if(saved.length===0) delete state.availability[k];
-  else state.availability[k]=saved;
-  saveState(); // ← writes to Firestore, students see updated slots instantly
+  await saveAvailabilityForDay(state.loggedInTutorId, dk, saved);
   renderAdminCalendar();
   renderAdminToggles();
 }
@@ -1149,42 +1256,39 @@ function renderAdminBookings() {
   list.innerHTML=html;
 }
 
-function adminDeleteBooking(id) {
+async function adminDeleteBooking(id) {
   if(!confirm('Remove this booking?')) return;
-  state.bookings=state.bookings.filter(b=>b.id!==id);
-  saveState();
+  const removed = await removeBookingSafely(id);
+  if (!removed) return;
   renderAdminBookings();
 }
 
 /* ---- ADMIN SETTINGS ---- */
-function saveName() {
+async function saveName() {
   const name=document.getElementById('admin-name-input').value.trim();
   if (!name) return;
-  const t=getTutor(state.loggedInTutorId);
-  if (t) t.name=name;
-  saveState();
+  const ok = await updateTutorFieldSafely('name', name);
+  if (!ok) return;
   showAdminPanel();
   renderTutorCards();
   const el=document.getElementById('name-saved');
   el.style.display='block'; setTimeout(()=>el.style.display='none',2500);
 }
 
-function saveUsername() {
+async function saveUsername() {
   const username=document.getElementById('admin-username-input').value.trim().toLowerCase();
   if (!username) return;
-  const t=getTutor(state.loggedInTutorId);
-  if (t) t.username=username;
-  saveState();
+  const ok = await updateTutorFieldSafely('username', username);
+  if (!ok) return;
   const el=document.getElementById('username-saved');
   el.style.display='block'; setTimeout(()=>el.style.display='none',2500);
 }
 
-function changePin() {
+async function changePin() {
   const np=document.getElementById('new-pin').value.trim();
   if (!np) return;
-  const t=getTutor(state.loggedInTutorId);
-  if (t) t.pin=np;
-  saveState();
+  const ok = await updateTutorFieldSafely('pin', np);
+  if (!ok) return;
   document.getElementById('new-pin').value='';
   const el=document.getElementById('pin-saved');
   el.style.display='block'; setTimeout(()=>el.style.display='none',2500);
