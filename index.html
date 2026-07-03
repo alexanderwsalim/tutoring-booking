@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Book a Tutoring Session</title>
+<title>Fresh Fade Barbershop — Book Your Appointment</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
 
 <!-- ✅ Firebase SDK (real-time cloud database) -->
@@ -33,8 +33,10 @@
     --radius-lg: 12px;
     --radius-xl: 16px;
     --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    --tutor-a: #4f6ef7;
-    --tutor-b: #e07b39;
+    --barber-a: #c9a227;
+    --barber-b: #b5482f;
+    --shop-dark: #161513;
+    --shop-accent: #c9a227;
   }
 
   @media (prefers-color-scheme: dark) {
@@ -89,37 +91,37 @@
     padding: 1.25rem;
   }
 
-  /* Tutor selector */
-  .tutor-select-section { margin-bottom: 1rem; }
-  .tutor-select-label {
+  /* Barber selector */
+  .barber-select-section { margin-bottom: 1rem; }
+  .barber-select-label {
     font-size: 11px; font-weight: 600; letter-spacing: 0.06em;
     text-transform: uppercase; color: var(--text-tertiary);
     margin-bottom: 8px;
   }
-  .tutor-cards { display: flex; gap: 8px; }
-  .tutor-card {
+  .barber-cards { display: flex; gap: 8px; }
+  .barber-card {
     flex: 1; padding: 12px 14px;
     border: 0.5px solid var(--border-mid);
     border-radius: var(--radius-lg);
     cursor: pointer; background: var(--bg-primary);
     transition: all 0.15s; display: flex; align-items: center; gap: 10px;
   }
-  .tutor-card:hover { border-color: var(--border-strong); background: var(--bg-secondary); }
-  .tutor-card.selected-a { border: 2px solid var(--tutor-a); background: color-mix(in srgb, var(--tutor-a) 8%, var(--bg-primary)); }
-  .tutor-card.selected-b { border: 2px solid var(--tutor-b); background: color-mix(in srgb, var(--tutor-b) 8%, var(--bg-primary)); }
-  .tutor-avatar {
+  .barber-card:hover { border-color: var(--border-strong); background: var(--bg-secondary); }
+  .barber-card.selected-a { border: 2px solid var(--barber-a); background: color-mix(in srgb, var(--barber-a) 8%, var(--bg-primary)); }
+  .barber-card.selected-b { border: 2px solid var(--barber-b); background: color-mix(in srgb, var(--barber-b) 8%, var(--bg-primary)); }
+  .barber-avatar {
     width: 36px; height: 36px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 15px; font-weight: 700; color: #fff; flex-shrink: 0;
   }
-  .tutor-avatar-a { background: var(--tutor-a); }
-  .tutor-avatar-b { background: var(--tutor-b); }
-  .tutor-card-name { font-size: 14px; font-weight: 600; }
-  .tutor-card-sub { font-size: 12px; color: var(--text-tertiary); margin-top: 1px; }
+  .barber-avatar-a { background: var(--barber-a); }
+  .barber-avatar-b { background: var(--barber-b); }
+  .barber-card-name { font-size: 14px; font-weight: 600; }
+  .barber-card-sub { font-size: 12px; color: var(--text-tertiary); margin-top: 1px; }
 
   /* Two-col layout */
   .layout { display: grid; grid-template-columns: 220px 1fr; gap: 1rem; }
-  @media (max-width: 640px) { .layout { grid-template-columns: 1fr; } .tutor-cards { flex-direction: column; } }
+  @media (max-width: 640px) { .layout { grid-template-columns: 1fr; } .barber-cards { flex-direction: column; } }
 
   /* Panel */
   .panel { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 1rem; }
@@ -210,8 +212,8 @@
   /* Tags */
   .tag { display: inline-block; font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 4px; letter-spacing: 0.04em; text-transform: uppercase; }
   .tag-subject { background: var(--bg-tertiary); color: var(--text-secondary); }
-  .tag-tutor-a { background: color-mix(in srgb, var(--tutor-a) 15%, var(--bg-primary)); color: var(--tutor-a); }
-  .tag-tutor-b { background: color-mix(in srgb, var(--tutor-b) 15%, var(--bg-primary)); color: var(--tutor-b); }
+  .tag-barber-a { background: color-mix(in srgb, var(--barber-a) 15%, var(--bg-primary)); color: var(--barber-a); }
+  .tag-barber-b { background: color-mix(in srgb, var(--barber-b) 15%, var(--bg-primary)); color: var(--barber-b); }
 
   /* Admin */
   .admin-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
@@ -293,6 +295,92 @@
   .error-box h3 { color: var(--text-danger); margin-bottom: 8px; font-size: 15px; }
   .error-box p { font-size: 13px; color: var(--text-secondary); line-height: 1.5; }
   .error-box code { font-size: 11px; background: var(--bg-tertiary); padding: 2px 5px; border-radius: 4px; }
+
+  /* ===== LANDING / COVER PAGE ===== */
+  .landing-wrap { max-width: 1100px; margin: 0 auto; }
+  .hero {
+    position: relative;
+    border-radius: var(--radius-xl);
+    overflow: hidden;
+    min-height: 440px;
+    display: flex; align-items: center;
+    background: radial-gradient(circle at 20% 20%, #2a2721 0%, var(--shop-dark) 55%, #0d0c0b 100%);
+    color: #f4efe4;
+    padding: 2.5rem;
+  }
+  .hero::before {
+    content: "";
+    position: absolute; inset: 0;
+    background-image:
+      repeating-linear-gradient(135deg, rgba(201,162,39,0.06) 0px, rgba(201,162,39,0.06) 2px, transparent 2px, transparent 22px);
+    pointer-events: none;
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 560px; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--shop-accent); border: 1px solid rgba(201,162,39,0.4);
+    padding: 5px 12px; border-radius: 999px; margin-bottom: 18px;
+  }
+  .hero h1 { font-size: 42px; line-height: 1.08; font-weight: 700; margin-bottom: 14px; letter-spacing: -0.01em; }
+  .hero h1 em { color: var(--shop-accent); font-style: normal; }
+  .hero p { font-size: 15px; color: #cfc9bc; line-height: 1.6; margin-bottom: 26px; max-width: 460px; }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; }
+  .btn-hero {
+    padding: 13px 26px; border-radius: 999px; font-size: 14px; font-weight: 600;
+    cursor: pointer; border: none; font-family: var(--font); transition: transform 0.15s, opacity 0.15s;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .btn-hero-primary { background: var(--shop-accent); color: #1a1509; }
+  .btn-hero-primary:hover { transform: translateY(-1px); opacity: 0.92; }
+  .btn-hero-ghost { background: transparent; color: #f4efe4; border: 1px solid rgba(244,239,228,0.35) !important; }
+  .btn-hero-ghost:hover { background: rgba(244,239,228,0.08); }
+  .hero-scissor-art { position: absolute; right: 4%; top: 50%; transform: translateY(-50%); z-index: 0; opacity: 0.9; }
+
+  .landing-section { margin-top: 2.75rem; }
+  .landing-section-head { text-align: center; margin-bottom: 1.5rem; }
+  .landing-eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--shop-accent); margin-bottom: 6px; }
+  .landing-title { font-size: 24px; font-weight: 700; }
+  .landing-sub { font-size: 13px; color: var(--text-secondary); margin-top: 6px; max-width: 460px; margin-left: auto; margin-right: auto; }
+
+  .services-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  @media (max-width: 720px) { .services-grid { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .services-grid { grid-template-columns: 1fr; } }
+  .service-card {
+    background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg);
+    padding: 18px 16px; transition: transform 0.15s, border-color 0.15s;
+  }
+  .service-card:hover { transform: translateY(-2px); border-color: var(--border-strong); }
+  .service-card-icon { font-size: 26px; margin-bottom: 10px; }
+  .service-card-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .service-card-meta { font-size: 12px; color: var(--text-tertiary); }
+
+  .team-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  @media (max-width: 560px) { .team-grid { grid-template-columns: 1fr; } }
+  .team-card { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 20px; display: flex; align-items: center; gap: 14px; }
+  .team-avatar-lg { width: 54px; height: 54px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; font-weight: 700; color: #fff; flex-shrink: 0; }
+  .team-name { font-size: 15px; font-weight: 600; }
+  .team-role { font-size: 12px; color: var(--text-tertiary); margin-top: 2px; }
+
+  .info-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 2.75rem; }
+  @media (max-width: 640px) { .info-strip { grid-template-columns: 1fr; } }
+  .info-card { background: var(--bg-primary); border: 0.5px solid var(--border-light); border-radius: var(--radius-lg); padding: 16px; text-align: center; }
+  .info-card i { font-size: 20px; color: var(--shop-accent); margin-bottom: 8px; display: block; }
+  .info-card-title { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .info-card-sub { font-size: 12px; color: var(--text-tertiary); }
+
+  .landing-footer-cta {
+    text-align: center; margin: 2.75rem 0 0.5rem; padding: 2rem;
+    background: var(--shop-dark); border-radius: var(--radius-xl); color: #f4efe4;
+  }
+  .landing-footer-cta h3 { font-size: 20px; margin-bottom: 6px; }
+  .landing-footer-cta p { font-size: 13px; color: #cfc9bc; margin-bottom: 16px; }
+
+  /* Service picker (grouped, replaces plain subject picker) */
+  .service-group-label { font-size: 11px; font-weight: 600; color: var(--text-tertiary); margin: 10px 0 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+  .service-btn-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; }
+  .other-services-toggle { font-size: 12px; color: var(--text-secondary); cursor: pointer; text-decoration: underline; text-underline-offset: 2px; margin-top: 8px; display: inline-block; }
+  .service-duration { font-size: 10px; opacity: 0.75; display: block; margin-top: 2px; }
 </style>
 </head>
 <body>
@@ -307,31 +395,86 @@
 
 <div class="site-wrap">
   <div class="nav">
-    <div class="nav-logo"><i class="ti ti-school" style="font-size:18px"></i> Book a Session</div>
+    <div class="nav-logo"><i class="ti ti-cut" style="font-size:18px"></i> Fresh Fade Barbershop</div>
     <div class="nav-tabs">
-      <button class="nav-tab active" onclick="showView('public')" id="tab-public">Book</button>
+      <button class="nav-tab active" onclick="showView('landing')" id="tab-home">Home</button>
+      <button class="nav-tab" onclick="showView('public')" id="tab-public">Book</button>
       <button class="nav-tab" onclick="goAdmin()" id="tab-admin" style="display:none"><i class="ti ti-lock" style="font-size:12px;margin-right:3px"></i>Admin</button>
     </div>
   </div>
 
   <div class="main-card">
 
-    <!-- ===== PUBLIC VIEW ===== -->
-    <div id="view-public">
+    <!-- ===== LANDING / COVER VIEW ===== -->
+    <div id="view-landing">
+      <div class="landing-wrap">
+        <div class="hero">
+          <div class="hero-content">
+            <div class="hero-badge"><i class="ti ti-star-filled"></i> Trusted local barbershop</div>
+            <h1>Sharp cuts,<br><em>zero waiting around.</em></h1>
+            <p>Book your haircut, shave, or grooming service online in under a minute. Pick your barber, pick your time, walk in and sit down.</p>
+            <div class="hero-cta">
+              <button class="btn-hero btn-hero-primary" onclick="showView('public')"><i class="ti ti-calendar-plus"></i> Book an appointment</button>
+              <button class="btn-hero btn-hero-ghost" onclick="document.getElementById('landing-services').scrollIntoView({behavior:'smooth'})"><i class="ti ti-list"></i> See services</button>
+            </div>
+          </div>
+        </div>
 
-      <!-- Step 1: Choose tutor -->
-      <div class="tutor-select-section">
-        <div class="tutor-select-label">Choose your tutor</div>
-        <div class="tutor-cards" id="tutor-cards"></div>
+        <div class="landing-section" id="landing-services">
+          <div class="landing-section-head">
+            <div class="landing-eyebrow">What we offer</div>
+            <div class="landing-title">Services & pricing</div>
+            <div class="landing-sub">Every appointment includes a 5-minute buffer between clients, so your barber is never rushed.</div>
+          </div>
+          <div class="services-grid" id="landing-services-grid"></div>
+        </div>
+
+        <div class="landing-section">
+          <div class="landing-section-head">
+            <div class="landing-eyebrow">Meet the team</div>
+            <div class="landing-title">Your barbers</div>
+          </div>
+          <div class="team-grid" id="landing-team-grid"></div>
+        </div>
+
+        <div class="info-strip">
+          <div class="info-card"><i class="ti ti-clock"></i><div class="info-card-title">Open daily</div><div class="info-card-sub">09:00 — 19:00</div></div>
+          <div class="info-card"><i class="ti ti-map-pin"></i><div class="info-card-title">Walk-ins welcome</div><div class="info-card-sub">Booking recommended</div></div>
+          <div class="info-card"><i class="ti ti-device-mobile"></i><div class="info-card-title">Easy rescheduling</div><div class="info-card-sub">Cancel anytime with your phone number</div></div>
+        </div>
+
+        <div class="landing-footer-cta">
+          <h3>Ready for a fresh look?</h3>
+          <p>Pick your barber and grab a time slot that works for you.</p>
+          <button class="btn-hero btn-hero-primary" onclick="showView('public')"><i class="ti ti-calendar-plus"></i> Book now</button>
+        </div>
+      </div>
+    </div><!-- /view-landing -->
+
+    <!-- ===== PUBLIC VIEW ===== -->
+    <div id="view-public" class="hidden">
+
+      <!-- Step 1: Choose barber -->
+      <div class="barber-select-section">
+        <div class="barber-select-label">Step 1 — Choose your barber</div>
+        <div class="barber-cards" id="barber-cards"></div>
       </div>
 
-      <!-- Step 2+: Calendar & slots (hidden until tutor chosen) -->
+      <!-- Step 2: Choose a service (hidden until barber chosen) -->
+      <div id="service-select-section" class="hidden" style="margin-bottom:1rem">
+        <div class="barber-select-label">Step 2 — Choose a service</div>
+        <div class="service-btn-grid" id="service-btn-grid"></div>
+        <span class="other-services-toggle" id="other-services-toggle" onclick="toggleOtherServices()">+ Show other services (waxing, kids cut, beard trim…)</span>
+        <div class="service-btn-grid hidden" id="other-service-btn-grid" style="margin-top:6px"></div>
+      </div>
+
+      <!-- Step 3+: Calendar & slots (hidden until service chosen) -->
       <div id="booking-area" class="hidden">
         <div class="layout">
           <!-- Left col -->
           <div>
             <div class="panel">
-              <div class="panel-title">Pick a date</div>
+              <div class="panel-title">Step 3 — Pick a date</div>
               <div class="cal-header">
                 <button class="cal-nav" onclick="changeMonth(-1)">&#8249;</button>
                 <span class="cal-month" id="cal-month-label"></span>
@@ -364,14 +507,6 @@
               <div class="form-title">Complete your booking</div>
               <div class="form-summary" id="booking-summary"></div>
 
-              <div class="form-row">
-                <label class="form-label">Subject <span style="color:var(--text-danger)">*</span></label>
-                <div class="subject-picker" id="subject-picker">
-                  <button class="subject-btn" onclick="selectSubject('Maths')">📐 Maths</button>
-                  <button class="subject-btn" onclick="selectSubject('Physique')">⚗️ Physique</button>
-                  <button class="subject-btn" onclick="selectSubject('SNT')">💻 SNT</button>
-                </div>
-              </div>
               <div class="form-row">
                 <label class="form-label">Your full name <span style="color:var(--text-danger)">*</span></label>
                 <input class="form-input" id="f-name" type="text" placeholder="e.g. Sara Khalil">
@@ -510,38 +645,62 @@ const FIREBASE_CONFIG = {
 };
 /* ================================================================ */
 
-const HOURS = ['08:00','10:00','12:00','14:00','16:00','18:00','20:00'];
-const SESSION_MINS = 90;
-const BUFFER_MINS  = 30;
+/* Working hours: opening slot start-times, 30-min steps, 09:00 to 19:00 */
+const HOURS = (() => {
+  const out = [];
+  for (let m = 9*60; m <= 19*60; m += 30) {
+    out.push(String(Math.floor(m/60)).padStart(2,'0')+':'+String(m%60).padStart(2,'0'));
+  }
+  return out;
+})();
+
+/* 5-minute breather between every appointment, regardless of service */
+const BUFFER_MINS = 5;
+
+/* ---- SERVICES ----
+   Every service has its own duration (30–40 min), per Alexandre's request.
+   "main" services show up front; "other" services are behind the
+   "Show other services" toggle (waxing, kids cut, beard trim, etc). */
+const SERVICES = [
+  { id: 'haircut',       name: 'Haircut',          icon: '✂️', duration: 30, group: 'main' },
+  { id: 'shave',         name: 'Shave',            icon: '🪒', duration: 30, group: 'main' },
+  { id: 'haircut_shave', name: 'Haircut & Shave',  icon: '💈', duration: 40, group: 'main' },
+  { id: 'beard_trim',    name: 'Beard Trim',       icon: '🧔', duration: 30, group: 'other' },
+  { id: 'kids_cut',      name: 'Kids Haircut',     icon: '🧒', duration: 30, group: 'other' },
+  { id: 'waxing',        name: 'Waxing',           icon: '🔥', duration: 35, group: 'other' },
+  { id: 'hair_wash',     name: 'Hair Wash & Style',icon: '💦', duration: 30, group: 'other' }
+];
+function getService(id) { return SERVICES.find(s => s.id === id); }
 
 /* ---- FIREBASE INIT ---- */
 firebase.initializeApp(FIREBASE_CONFIG);
 const db      = firebase.firestore();
-const APP_DOC = db.collection('tutor_app').doc('v1');
+const APP_DOC = db.collection('barber_app').doc('v1');
 
 /* ---- STATE (UI state stays local; persistent data syncs via Firestore) ---- */
 let state = {
   /* persistent — stored in Firestore */
-  tutors: [
+  barbers: [
     { id: 't1', name: 'Alexandre Salim', username: 'alexandre salim', pin: 'A2l0e0x7' },
     { id: 't2', name: 'Chloe Maalouf',   username: 'chloe maalouf',   pin: 'CloCloGymBro' }
   ],
-  availability: {},   // key: availKey(tutorId, dateKey) → [slots]
-  bookings:     [],   // { id, tutorId, date, slot, subject, name, phone }
+  availability: {},   // key: availKey(barberId, dateKey) → [slots]
+  bookings:     [],   // { id, barberId, date, slot, serviceId, service, duration, name, phone }
 
   /* UI-only — never sent to Firestore */
-  currentMonth:      new Date().getMonth(),
-  currentYear:       new Date().getFullYear(),
-  adminMonth:        new Date().getMonth(),
-  adminYear:         new Date().getFullYear(),
-  selectedTutorId:   null,
-  selectedDate:      null,
-  selectedSlot:      null,
-  selectedSubject:   null,
-  lastBookingId:     null,
-  loggedInTutorId:   null,
-  adminSelectedDate: null,
-  adminDayDraft:     {}
+  currentMonth:       new Date().getMonth(),
+  currentYear:        new Date().getFullYear(),
+  adminMonth:         new Date().getMonth(),
+  adminYear:          new Date().getFullYear(),
+  selectedBarberId:   null,
+  selectedServiceId:  null,
+  selectedDate:       null,
+  selectedSlot:       null,
+  lastBookingId:      null,
+  loggedInBarberId:   null,
+  adminSelectedDate:  null,
+  adminDayDraft:      {},
+  showOtherServices:  false
 };
 
 /* ---- FIRESTORE WRITE HELPERS ----
@@ -553,7 +712,7 @@ let state = {
 async function initializeStateDoc() {
   try {
     await APP_DOC.set({
-      tutors:       state.tutors,
+      barbers:       state.barbers,
       availability: state.availability,
       bookings:     state.bookings
     }, { merge: true });
@@ -563,8 +722,8 @@ async function initializeStateDoc() {
   }
 }
 
-async function saveAvailabilityForDay(tutorId, date, slots) {
-  const k = availKey(tutorId, date);
+async function saveAvailabilityForDay(barberId, date, slots) {
+  const k = availKey(barberId, date);
   try {
     if (slots.length === 0) {
       await APP_DOC.update({
@@ -593,7 +752,7 @@ async function addBookingSafely(booking) {
       const bookings = Array.isArray(data.bookings) ? [...data.bookings] : [];
 
       const alreadyBooked = bookings.some(b =>
-        b.tutorId === booking.tutorId &&
+        b.barberId === booking.barberId &&
         b.date === booking.date &&
         b.slot === booking.slot
       );
@@ -636,32 +795,58 @@ async function removeBookingSafely(id) {
   }
 }
 
-async function updateTutorFieldSafely(field, value) {
-  const tutorId = state.loggedInTutorId;
+async function updateBarberFieldSafely(field, value) {
+  const barberId = state.loggedInBarberId;
   try {
     await db.runTransaction(async (transaction) => {
       const snap = await transaction.get(APP_DOC);
       const data = snap.exists ? snap.data() : {};
-      const tutors = Array.isArray(data.tutors) ? [...data.tutors] : [...state.tutors];
+      const barbers = Array.isArray(data.barbers) ? [...data.barbers] : [...state.barbers];
 
-      const idx = tutors.findIndex(t => t.id === tutorId);
-      if (idx === -1) throw new Error('Tutor not found.');
+      const idx = barbers.findIndex(t => t.id === barberId);
+      if (idx === -1) throw new Error('Barber not found.');
 
-      tutors[idx] = { ...tutors[idx], [field]: value };
-      transaction.set(APP_DOC, { tutors }, { merge: true });
-      state.tutors = tutors;
+      barbers[idx] = { ...barbers[idx], [field]: value };
+      transaction.set(APP_DOC, { barbers }, { merge: true });
+      state.barbers = barbers;
     });
     return true;
   } catch(e) {
-    console.error('Tutor settings save failed:', e);
+    console.error('Barber settings save failed:', e);
     alert('Could not update settings. Please refresh and try again.');
     return false;
   }
 }
 
 /* ---- RE-RENDER everything after a remote update ---- */
+function renderLanding() {
+  const svcGrid = document.getElementById('landing-services-grid');
+  if (svcGrid) {
+    svcGrid.innerHTML = SERVICES.map(s => `<div class="service-card">
+      <div class="service-card-icon">${s.icon}</div>
+      <div class="service-card-name">${s.name}</div>
+      <div class="service-card-meta">${s.duration} min</div>
+    </div>`).join('');
+  }
+  const teamGrid = document.getElementById('landing-team-grid');
+  if (teamGrid) {
+    teamGrid.innerHTML = state.barbers.map((t,i) => {
+      const letter = t.name.charAt(0).toUpperCase();
+      const colorClass = i===0 ? 'barber-avatar-a' : 'barber-avatar-b';
+      return `<div class="team-card">
+        <div class="team-avatar-lg ${colorClass}">${letter}</div>
+        <div>
+          <div class="team-name">${t.name}</div>
+          <div class="team-role">Barber</div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+
 function reRenderAll() {
-  renderTutorCards();
+  renderLanding();
+  renderBarberCards();
   renderCalendar();
   if (state.selectedDate)      renderSlots();
   if (state.selectedDate && document.getElementById('booking-form') &&
@@ -669,7 +854,7 @@ function reRenderAll() {
     /* keep form open but refresh slot status */
     renderSlots();
   }
-  if (state.loggedInTutorId) {
+  if (state.loggedInBarberId) {
     renderAdminCalendar();
     renderAdminBookings();
     if (state.adminSelectedDate) renderAdminToggles();
@@ -685,7 +870,7 @@ APP_DOC.onSnapshot((doc) => {
       { username: 'alexandre salim' },
       { username: 'chloe maalouf' }
     ];
-    state.tutors = (data.tutors || state.tutors).map((t, i) => ({
+    state.barbers = (data.barbers || state.barbers).map((t, i) => ({
       username: defaults[i]?.username,
       ...t
     }));
@@ -718,10 +903,10 @@ APP_DOC.onSnapshot((doc) => {
 
 /* ================================================================
    Functions below now use safer Firestore writes: bookings, availability,
-   and tutor settings are saved separately to avoid stale-tab overwrites.
+   and barber settings are saved separately to avoid stale-tab overwrites.
    ================================================================ */
 
-function getTutor(id) { return state.tutors.find(t=>t.id===id); }
+function getBarber(id) { return state.barbers.find(t=>t.id===id); }
 function dateKey(y,m,d) { return `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`; }
 function todayKey() { const n=new Date(); return dateKey(n.getFullYear(),n.getMonth(),n.getDate()); }
 function isPast(y,m,d) { const n=new Date(); n.setHours(0,0,0,0); return new Date(y,m,d)<n; }
@@ -729,20 +914,26 @@ function fmtDate(dk) { const [y,m,d]=dk.split('-').map(Number); return new Date(
 function fmtDateShort(dk) { const [y,m,d]=dk.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'}); }
 function fmtDateMed(dk) { const [y,m,d]=dk.split('-').map(Number); return new Date(y,m-1,d).toLocaleDateString('en',{weekday:'long',month:'long',day:'numeric',year:'numeric'}); }
 function slotToMins(s) { const [h,m]=s.split(':').map(Number); return h*60+m; }
-function slotEndTime(s) {
-  const e=slotToMins(s)+SESSION_MINS;
+/* Duration-aware: pass the duration of the service being checked.
+   Defaults to 30 min (used for admin toggle grid, which is duration-agnostic). */
+function slotEndTime(s, duration) {
+  const e=slotToMins(s)+(duration||30);
   return String(Math.floor(e/60)).padStart(2,'0')+':'+String(e%60).padStart(2,'0');
 }
 function availKey(tid, dk) { return tid+'::'+dk; }
 
-function getBookingsForTutorDate(tid, dk) { return state.bookings.filter(b=>b.tutorId===tid&&b.date===dk); }
-function isSlotBooked(tid, dk, slot) { return state.bookings.some(b=>b.tutorId===tid&&b.date===dk&&b.slot===slot); }
+function getBookingsForBarberDate(tid, dk) { return state.bookings.filter(b=>b.barberId===tid&&b.date===dk); }
+function isSlotBooked(tid, dk, slot) { return state.bookings.some(b=>b.barberId===tid&&b.date===dk&&b.slot===slot); }
 
-function isSlotInBuffer(tid, dk, slot, phone) {
-  const bookings = getBookingsForTutorDate(tid, dk);
-  const newStart = slotToMins(slot), newEnd = newStart+SESSION_MINS;
+/* Checks whether `slot` (given `duration`) would land inside another
+   appointment or its 5-minute buffer on either side. Each existing
+   booking uses ITS OWN stored duration (30–40 min), not a fixed value. */
+function isSlotInBuffer(tid, dk, slot, duration, phone) {
+  const bookings = getBookingsForBarberDate(tid, dk);
+  const newStart = slotToMins(slot), newEnd = newStart+(duration||30);
   for (const b of bookings) {
-    const bStart=slotToMins(b.slot), bEnd=bStart+SESSION_MINS;
+    const bDur = b.duration || 30;
+    const bStart=slotToMins(b.slot), bEnd=bStart+bDur;
     const conflicts = newStart<bEnd+BUFFER_MINS && newEnd>bStart-BUFFER_MINS;
     if (conflicts && newStart!==bStart) {
       if (phone && b.phone===phone) { if (!(newStart<bEnd&&newEnd>bStart)) continue; }
@@ -752,27 +943,34 @@ function isSlotInBuffer(tid, dk, slot, phone) {
   return false;
 }
 
-function getSlotStatus(tid, dk, slot, phone) {
+/* A slot is only "available" if the full service duration fits before
+   closing time (19:00) — a 40-min service can't start at 18:50. */
+function fitsBeforeClose(slot, duration) {
+  return slotToMins(slot) + (duration||30) <= 19*60;
+}
+
+function getSlotStatus(tid, dk, slot, duration, phone) {
   const k = availKey(tid, dk);
   if (!state.availability[k] || !state.availability[k].includes(slot)) return 'unavailable';
+  if (!fitsBeforeClose(slot, duration)) return 'unavailable';
   if (isSlotBooked(tid, dk, slot)) return 'booked';
-  if (isSlotInBuffer(tid, dk, slot, phone)) return 'buffer';
+  if (isSlotInBuffer(tid, dk, slot, duration, phone)) return 'buffer';
   return 'available';
 }
 
 /* ---- TUTOR CARDS ---- */
-function renderTutorCards() {
-  const container = document.getElementById('tutor-cards');
-  container.innerHTML = state.tutors.map((t,i) => {
+function renderBarberCards() {
+  const container = document.getElementById('barber-cards');
+  container.innerHTML = state.barbers.map((t,i) => {
     const letter = t.name.charAt(0).toUpperCase();
-    const colorClass = i===0 ? 'tutor-avatar-a' : 'tutor-avatar-b';
-    const selectedClass = state.selectedTutorId===t.id ? (i===0?'selected-a':'selected-b') : '';
+    const colorClass = i===0 ? 'barber-avatar-a' : 'barber-avatar-b';
+    const selectedClass = state.selectedBarberId===t.id ? (i===0?'selected-a':'selected-b') : '';
     const bookingCount = countUpcomingSlots(t.id);
-    return `<div class="tutor-card ${selectedClass}" onclick="selectTutor('${t.id}')">
-      <div class="tutor-avatar ${colorClass}">${letter}</div>
+    return `<div class="barber-card ${selectedClass}" onclick="selectBarber('${t.id}')">
+      <div class="barber-avatar ${colorClass}">${letter}</div>
       <div>
-        <div class="tutor-card-name">${t.name}</div>
-        <div class="tutor-card-sub">${bookingCount} slot${bookingCount!==1?'s':''} available</div>
+        <div class="barber-card-name">${t.name}</div>
+        <div class="barber-card-sub">${bookingCount} slot${bookingCount!==1?'s':''} available</div>
       </div>
     </div>`;
   }).join('');
@@ -785,18 +983,52 @@ function countUpcomingSlots(tid) {
     .reduce((sum,[,v]) => sum + v.length, 0);
 }
 
-function selectTutor(tid) {
-  state.selectedTutorId = tid;
+function selectBarber(tid) {
+  state.selectedBarberId = tid;
+  state.selectedServiceId = null;
   state.selectedDate = null;
   state.selectedSlot = null;
-  state.selectedSubject = null;
+  document.getElementById('service-select-section').classList.remove('hidden');
+  document.getElementById('booking-area').classList.add('hidden');
+  document.getElementById('booking-form').classList.add('hidden');
+  document.getElementById('success-card').classList.add('hidden');
+  document.getElementById('cancelled-card').classList.add('hidden');
+  renderBarberCards();
+  renderServicePicker();
+}
+
+/* ---- SERVICE PICKER (Step 2) ---- */
+function serviceBtnHtml(s) {
+  const sel = state.selectedServiceId===s.id ? ' selected' : '';
+  return `<button class="subject-btn${sel}" onclick="selectService('${s.id}')">${s.icon} ${s.name}
+    <span class="service-duration">${s.duration} min</span></button>`;
+}
+function renderServicePicker() {
+  document.getElementById('service-btn-grid').innerHTML =
+    SERVICES.filter(s=>s.group==='main').map(serviceBtnHtml).join('');
+  document.getElementById('other-service-btn-grid').innerHTML =
+    SERVICES.filter(s=>s.group==='other').map(serviceBtnHtml).join('');
+  document.getElementById('other-service-btn-grid').classList.toggle('hidden', !state.showOtherServices);
+  document.getElementById('other-services-toggle').textContent =
+    state.showOtherServices ? '– Hide other services' : '+ Show other services (waxing, kids cut, beard trim…)';
+}
+function toggleOtherServices() {
+  state.showOtherServices = !state.showOtherServices;
+  renderServicePicker();
+}
+
+function selectService(sid) {
+  state.selectedServiceId = sid;
+  state.selectedDate = null;
+  state.selectedSlot = null;
+  renderServicePicker();
   document.getElementById('booking-area').classList.remove('hidden');
   document.getElementById('booking-form').classList.add('hidden');
   document.getElementById('success-card').classList.add('hidden');
   document.getElementById('cancelled-card').classList.add('hidden');
-  renderTutorCards();
   renderCalendar();
   renderSlots();
+  document.getElementById('booking-area').scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 /* ---- PUBLIC CALENDAR ---- */
@@ -813,7 +1045,7 @@ function renderCalendar() {
   for (let d=1;d<=total;d++) {
     const dk=dateKey(y,m,d);
     const past=isPast(y,m,d);
-    const k=availKey(state.selectedTutorId, dk);
+    const k=availKey(state.selectedBarberId, dk);
     const hasSlots=!past&&state.availability[k]&&state.availability[k].length>0;
     const sel=state.selectedDate===dk;
     const isToday=dk===td;
@@ -829,7 +1061,7 @@ function renderCalendar() {
 }
 
 function selectDate(dk) {
-  state.selectedDate=dk; state.selectedSlot=null; state.selectedSubject=null;
+  state.selectedDate=dk; state.selectedSlot=null;
   document.getElementById('booking-form').classList.add('hidden');
   document.getElementById('success-card').classList.add('hidden');
   document.getElementById('cancelled-card').classList.add('hidden');
@@ -842,14 +1074,16 @@ function renderSlots() {
   const grid=document.getElementById('slots-grid');
   if (!dk) { title.textContent='Select a date to see availability'; grid.innerHTML=''; return; }
   title.textContent=fmtDate(dk);
-  const tid=state.selectedTutorId;
+  const tid=state.selectedBarberId;
+  const svc=getService(state.selectedServiceId);
+  const duration=svc?svc.duration:30;
   const avail=state.availability[availKey(tid,dk)]||[];
   if (avail.length===0) { grid.innerHTML='<div class="no-slots">No availability set for this day</div>'; return; }
   let html='';
   for (const slot of avail) {
     const phone=document.getElementById('f-phone')?document.getElementById('f-phone').value.trim():'';
-    const status=getSlotStatus(tid,dk,slot,phone);
-    const endTime=slotEndTime(slot);
+    const status=getSlotStatus(tid,dk,slot,duration,phone);
+    const endTime=slotEndTime(slot,duration);
     if (status==='available') {
       const sel=state.selectedSlot===slot;
       html+=`<div class="slot available${sel?' selected-slot':''}" onclick="selectSlot('${slot}')">
@@ -864,7 +1098,7 @@ function renderSlots() {
     } else if (status==='buffer') {
       html+=`<div class="slot buffer">
         <span class="slot-time">${slot} – ${endTime}</span>
-        <span class="slot-badge badge-buffer">30 min break</span>
+        <span class="slot-badge badge-buffer">5 min break</span>
       </div>`;
     }
   }
@@ -872,29 +1106,25 @@ function renderSlots() {
 }
 
 function selectSlot(slot) {
-  state.selectedSlot=slot; state.selectedSubject=null;
+  state.selectedSlot=slot;
   renderSlots();
-  const t=getTutor(state.selectedTutorId);
-  const tidx=state.tutors.findIndex(x=>x.id===state.selectedTutorId);
+  const t=getBarber(state.selectedBarberId);
+  const tidx=state.barbers.findIndex(x=>x.id===state.selectedBarberId);
+  const svc=getService(state.selectedServiceId);
   document.getElementById('booking-summary').innerHTML =
-    `📅 ${fmtDate(state.selectedDate)} &nbsp;·&nbsp; ${slot} – ${slotEndTime(slot)} &nbsp;·&nbsp; 1.5h session<br>
-     <span style="margin-top:4px;display:inline-block"><span class="tag ${tidx===0?'tag-tutor-a':'tag-tutor-b'}">${t.name}</span></span>`;
+    `${svc.icon} <strong>${svc.name}</strong> (${svc.duration} min)<br>
+     📅 ${fmtDate(state.selectedDate)} &nbsp;·&nbsp; ${slot} – ${slotEndTime(slot,svc.duration)}<br>
+     <span style="margin-top:4px;display:inline-block"><span class="tag ${tidx===0?'tag-barber-a':'tag-barber-b'}">${t.name}</span></span>`;
   document.getElementById('booking-form').classList.remove('hidden');
   document.getElementById('success-card').classList.add('hidden');
   document.getElementById('cancelled-card').classList.add('hidden');
   document.getElementById('f-name').value='';
   document.getElementById('f-phone').value='';
   document.getElementById('form-error').style.display='none';
-  document.querySelectorAll('.subject-btn').forEach(b=>b.classList.remove('selected'));
-}
-
-function selectSubject(s) {
-  state.selectedSubject=s;
-  document.querySelectorAll('.subject-btn').forEach(b=>b.classList.toggle('selected',b.textContent.includes(s)));
 }
 
 function cancelBookingForm() {
-  state.selectedSlot=null; state.selectedSubject=null;
+  state.selectedSlot=null;
   document.getElementById('booking-form').classList.add('hidden');
   renderSlots();
 }
@@ -903,32 +1133,33 @@ async function confirmBooking() {
   const name=document.getElementById('f-name').value.trim();
   const phone=document.getElementById('f-phone').value.trim();
   const err=document.getElementById('form-error');
-  if (!state.selectedSubject) { err.textContent='Please select a subject.'; err.style.display='block'; return; }
+  const svc=getService(state.selectedServiceId);
+  if (!svc) { err.textContent='Please select a service.'; err.style.display='block'; return; }
   if (!name) { err.textContent='Please enter your name.'; err.style.display='block'; return; }
   if (!phone) { err.textContent='Please enter your phone number.'; err.style.display='block'; return; }
   err.style.display='none';
-  const tid=state.selectedTutorId, dk=state.selectedDate, slot=state.selectedSlot;
-  const status=getSlotStatus(tid,dk,slot,phone);
+  const tid=state.selectedBarberId, dk=state.selectedDate, slot=state.selectedSlot;
+  const status=getSlotStatus(tid,dk,slot,svc.duration,phone);
   if (status==='booked')      { err.textContent='This slot was just booked. Please pick another.'; err.style.display='block'; return; }
-  if (status==='buffer')      { err.textContent='This slot is within 30 minutes of another booking.'; err.style.display='block'; return; }
+  if (status==='buffer')      { err.textContent='This slot is within 5 minutes of another booking.'; err.style.display='block'; return; }
   if (status!=='available')   { err.textContent='This slot is no longer available.'; err.style.display='block'; return; }
 
   const id=Date.now();
-  const newBooking = {id, tutorId:tid, date:dk, slot, subject:state.selectedSubject, name, phone};
+  const newBooking = {id, barberId:tid, date:dk, slot, serviceId:svc.id, service:svc.name, duration:svc.duration, name, phone};
 
   const saved = await addBookingSafely(newBooking);
   if (!saved) return;
 
   state.lastBookingId=id;
-  const t=getTutor(tid);
-  const tidx=state.tutors.findIndex(x=>x.id===tid);
+  const t=getBarber(tid);
+  const tidx=state.barbers.findIndex(x=>x.id===tid);
   document.getElementById('success-detail').innerHTML =
-    `<span class="tag tag-subject">${state.selectedSubject}</span> &nbsp;<span class="tag ${tidx===0?'tag-tutor-a':'tag-tutor-b'}">${t.name}</span><br><br>
-     <strong>${name}</strong><br>${fmtDate(dk)} · ${slot}–${slotEndTime(slot)}<br>We'll be in touch at ${phone}.`;
+    `<span class="tag tag-subject">${svc.icon} ${svc.name}</span> &nbsp;<span class="tag ${tidx===0?'tag-barber-a':'tag-barber-b'}">${t.name}</span><br><br>
+     <strong>${name}</strong><br>${fmtDate(dk)} · ${slot}–${slotEndTime(slot,svc.duration)}<br>We'll be in touch at ${phone}.`;
   document.getElementById('booking-form').classList.add('hidden');
   document.getElementById('success-card').classList.remove('hidden');
-  state.selectedSlot=null; state.selectedSubject=null;
-  renderCalendar(); renderSlots(); renderTutorCards();
+  state.selectedSlot=null;
+  renderCalendar(); renderSlots(); renderBarberCards();
 }
 
 /* ---- USER CANCELLATION ---- */
@@ -937,16 +1168,16 @@ async function cancelLastBooking() {
   if (!id) return;
   const b=state.bookings.find(x=>x.id===id);
   if (!b) { document.getElementById('success-card').classList.add('hidden'); return; }
-  if (!confirm(`Cancel your ${b.subject} session on ${fmtDate(b.date)} at ${b.slot}?`)) return;
+  if (!confirm(`Cancel your ${b.service||'appointment'} on ${fmtDate(b.date)} at ${b.slot}?`)) return;
 
   const removed = await removeBookingSafely(id);
   if (!removed) return;
 
   state.lastBookingId=null;
   document.getElementById('success-card').classList.add('hidden');
-  document.getElementById('cancelled-detail').textContent=`Your ${b.subject} session on ${fmtDate(b.date)} at ${b.slot} has been cancelled.`;
+  document.getElementById('cancelled-detail').textContent=`Your ${b.service||'appointment'} on ${fmtDate(b.date)} at ${b.slot} has been cancelled.`;
   document.getElementById('cancelled-card').classList.remove('hidden');
-  renderCalendar(); renderSlots(); renderTutorCards();
+  renderCalendar(); renderSlots(); renderBarberCards();
 }
 
 function lookupBookings() {
@@ -957,16 +1188,16 @@ function lookupBookings() {
   if (!matches.length) { el.innerHTML='<div class="no-results">No bookings found for this number.</div>'; return; }
   const sorted=[...matches].sort((a,b)=>(a.date+a.slot)<(b.date+b.slot)?-1:1);
   el.innerHTML=sorted.map(b=>{
-    const t=getTutor(b.tutorId);
-    const tidx=state.tutors.findIndex(x=>x.id===b.tutorId);
+    const t=getBarber(b.barberId);
+    const tidx=state.barbers.findIndex(x=>x.id===b.barberId);
     return `<div class="cancel-item">
       <div class="cancel-item-info">
         <div class="cancel-item-main">
-          <span class="tag tag-subject">${b.subject||'Session'}</span>
-          <span class="tag ${tidx===0?'tag-tutor-a':'tag-tutor-b'}">${t?t.name:b.tutorId}</span>
+          <span class="tag tag-subject">${b.service||'Appointment'}</span>
+          <span class="tag ${tidx===0?'tag-barber-a':'tag-barber-b'}">${t?t.name:b.barberId}</span>
           ${b.name}
         </div>
-        <div class="cancel-item-meta">${fmtDateShort(b.date)} · ${b.slot}–${slotEndTime(b.slot)}</div>
+        <div class="cancel-item-meta">${fmtDateShort(b.date)} · ${b.slot}–${slotEndTime(b.slot,b.duration)}</div>
       </div>
       <button class="btn btn-danger" onclick="userCancelBooking(${b.id})" style="padding:5px 10px;font-size:12px;white-space:nowrap">
         <i class="ti ti-x"></i> Cancel
@@ -978,7 +1209,7 @@ function lookupBookings() {
 async function userCancelBooking(id) {
   const b=state.bookings.find(x=>x.id===id);
   if (!b) return;
-  if (!confirm(`Cancel your ${b.subject||'session'} on ${fmtDate(b.date)} at ${b.slot}?`)) return;
+  if (!confirm(`Cancel your ${b.service||'appointment'} on ${fmtDate(b.date)} at ${b.slot}?`)) return;
 
   const removed = await removeBookingSafely(id);
   if (!removed) return;
@@ -986,10 +1217,10 @@ async function userCancelBooking(id) {
   if (state.lastBookingId===id) {
     state.lastBookingId=null;
     document.getElementById('success-card').classList.add('hidden');
-    document.getElementById('cancelled-detail').textContent=`Your ${b.subject||'session'} on ${fmtDate(b.date)} at ${b.slot} has been cancelled.`;
+    document.getElementById('cancelled-detail').textContent=`Your ${b.service||'appointment'} on ${fmtDate(b.date)} at ${b.slot} has been cancelled.`;
     document.getElementById('cancelled-card').classList.remove('hidden');
   }
-  renderCalendar(); renderSlots(); renderTutorCards();
+  renderCalendar(); renderSlots(); renderBarberCards();
   lookupBookings();
 }
 
@@ -1002,15 +1233,18 @@ function changeMonth(dir) {
 
 /* ---- VIEWS ---- */
 function showView(v) {
+  document.getElementById('view-landing').classList.toggle('hidden',v!=='landing');
   document.getElementById('view-public').classList.toggle('hidden',v!=='public');
   document.getElementById('view-admin').classList.toggle('hidden',v!=='admin');
+  document.getElementById('tab-home').classList.toggle('active',v==='landing');
   document.getElementById('tab-public').classList.toggle('active',v==='public');
   document.getElementById('tab-admin').classList.toggle('active',v==='admin');
+  if (v!=='admin') window.scrollTo({top:0,behavior:'smooth'});
 }
 
 function goAdmin() {
   showView('admin');
-  if (state.loggedInTutorId) showAdminPanel();
+  if (state.loggedInBarberId) showAdminPanel();
   else {
     document.getElementById('admin-gate').classList.remove('hidden');
     document.getElementById('admin-panel').classList.add('hidden');
@@ -1059,7 +1293,7 @@ function showLockoutCountdown() {
 let sessionTimeout = null;
 function resetSessionTimeout() {
   clearTimeout(sessionTimeout);
-  if (!state.loggedInTutorId) return;
+  if (!state.loggedInBarberId) return;
   sessionTimeout = setTimeout(() => {
     adminLogout();
     alert('You have been automatically logged out after 30 minutes of inactivity.');
@@ -1082,7 +1316,7 @@ function checkLogin() {
     err.style.display = 'block'; return;
   }
 
-  const matched = state.tutors.find(t =>
+  const matched = state.barbers.find(t =>
     (t.username || '').toLowerCase() === username && t.pin === password
   );
 
@@ -1090,7 +1324,7 @@ function checkLogin() {
     loginAttempts = 0;
     localStorage.removeItem('login_attempts');
     localStorage.removeItem('lockout_until');
-    state.loggedInTutorId = matched.id;
+    state.loggedInBarberId = matched.id;
     err.style.display = 'none';
     resetSessionTimeout();
     showAdminPanel();
@@ -1117,9 +1351,9 @@ function checkPin() { checkLogin(); }
 function showAdminPanel() {
   document.getElementById('admin-gate').classList.add('hidden');
   document.getElementById('admin-panel').classList.remove('hidden');
-  const t=getTutor(state.loggedInTutorId);
-  const tidx=state.tutors.findIndex(x=>x.id===state.loggedInTutorId);
-  const color=tidx===0?'var(--tutor-a)':'var(--tutor-b)';
+  const t=getBarber(state.loggedInBarberId);
+  const tidx=state.barbers.findIndex(x=>x.id===state.loggedInBarberId);
+  const color=tidx===0?'var(--barber-a)':'var(--barber-b)';
   document.getElementById('admin-who-bar').innerHTML=
     `<div class="admin-who-dot" style="background:${color}"></div>
      <span>Logged in as <strong>${t.name}</strong></span>`;
@@ -1131,7 +1365,7 @@ function showAdminPanel() {
 
 function adminLogout() {
   clearTimeout(sessionTimeout);
-  state.loggedInTutorId=null;
+  state.loggedInBarberId=null;
   document.getElementById('login-username').value='';
   document.getElementById('login-password').value='';
   showView('public');
@@ -1156,7 +1390,7 @@ function renderAdminCalendar() {
   const total=new Date(y,m+1,0).getDate();
   for(let d=1;d<=total;d++){
     const dk=dateKey(y,m,d);
-    const k=availKey(state.loggedInTutorId,dk);
+    const k=availKey(state.loggedInBarberId,dk);
     const hasSlots=state.availability[k]&&state.availability[k].length>0;
     const sel=state.adminSelectedDate===dk;
     let cls='cal-day'+(sel?' selected':hasSlots?' has-slots':'');
@@ -1168,7 +1402,7 @@ function renderAdminCalendar() {
 function adminSelectDate(dk) {
   state.adminSelectedDate=dk;
   state.adminDayDraft={};
-  const avail=state.availability[availKey(state.loggedInTutorId,dk)]||[];
+  const avail=state.availability[availKey(state.loggedInBarberId,dk)]||[];
   avail.forEach(h=>state.adminDayDraft[h]=true);
   renderAdminCalendar();
   const [y,m,d]=dk.split('-').map(Number);
@@ -1180,13 +1414,13 @@ function adminSelectDate(dk) {
 
 function renderAdminToggles() {
   const dk=state.adminSelectedDate;
-  const booked=getBookingsForTutorDate(state.loggedInTutorId,dk).map(b=>b.slot);
+  const booked=getBookingsForBarberDate(state.loggedInBarberId,dk).map(b=>b.slot);
   let html='';
   for (const h of HOURS) {
     const checked=!!state.adminDayDraft[h];
     const isBooked=booked.includes(h);
     html+=`<div class="toggle-row">
-      <span style="font-size:13px">${h}–${slotEndTime(h)}${isBooked?' <span style="font-size:11px;color:var(--text-tertiary)">(booked)</span>':''}</span>
+      <span style="font-size:13px">${h}–${slotEndTime(h,30)}${isBooked?' <span style="font-size:11px;color:var(--text-tertiary)">(booked)</span>':''}</span>
       <label class="toggle" ${isBooked?'title="Cannot remove — already booked"':''}>
         <input type="checkbox" ${checked?'checked':''} ${isBooked?'disabled':''} onchange="toggleHour('${h}',this.checked)">
         <div class="toggle-track"></div><div class="toggle-thumb"></div>
@@ -1201,14 +1435,14 @@ function toggleHour(h,on) { if(on) state.adminDayDraft[h]=true; else delete stat
 async function saveAvailability() {
   const dk=state.adminSelectedDate;
   const saved=HOURS.filter(h=>state.adminDayDraft[h]);
-  await saveAvailabilityForDay(state.loggedInTutorId, dk, saved);
+  await saveAvailabilityForDay(state.loggedInBarberId, dk, saved);
   renderAdminCalendar();
   renderAdminToggles();
 }
 
 function clearDay() {
   const dk=state.adminSelectedDate;
-  const booked=getBookingsForTutorDate(state.loggedInTutorId,dk).map(b=>b.slot);
+  const booked=getBookingsForBarberDate(state.loggedInBarberId,dk).map(b=>b.slot);
   state.adminDayDraft={};
   booked.forEach(s=>state.adminDayDraft[s]=true);
   renderAdminToggles();
@@ -1217,7 +1451,7 @@ function clearDay() {
 /* ---- ADMIN BOOKINGS (grouped by date) ---- */
 function renderAdminBookings() {
   const list=document.getElementById('admin-bookings-list');
-  const myBookings=state.bookings.filter(b=>b.tutorId===state.loggedInTutorId);
+  const myBookings=state.bookings.filter(b=>b.barberId===state.loggedInBarberId);
   if (!myBookings.length) {
     list.innerHTML='<div class="empty-state"><i class="ti ti-calendar-off" style="font-size:24px;display:block;margin-bottom:6px"></i>No bookings yet</div>';
     return;
@@ -1241,10 +1475,10 @@ function renderAdminBookings() {
       html+=`<div class="booking-item">
         <div>
           <div class="booking-name">
-            <span class="tag tag-subject">${b.subject||'—'}</span>
+            <span class="tag tag-subject">${b.service||'—'}</span>
             ${b.name}
           </div>
-          <div class="booking-meta">${b.slot}–${slotEndTime(b.slot)} · ${b.phone}</div>
+          <div class="booking-meta">${b.slot}–${slotEndTime(b.slot,b.duration)} · ${b.phone}</div>
         </div>
         <button class="btn btn-danger" onclick="adminDeleteBooking(${b.id})" style="padding:5px 10px;font-size:12px">
           <i class="ti ti-trash"></i>
@@ -1267,10 +1501,10 @@ async function adminDeleteBooking(id) {
 async function saveName() {
   const name=document.getElementById('admin-name-input').value.trim();
   if (!name) return;
-  const ok = await updateTutorFieldSafely('name', name);
+  const ok = await updateBarberFieldSafely('name', name);
   if (!ok) return;
   showAdminPanel();
-  renderTutorCards();
+  renderBarberCards();
   const el=document.getElementById('name-saved');
   el.style.display='block'; setTimeout(()=>el.style.display='none',2500);
 }
@@ -1278,7 +1512,7 @@ async function saveName() {
 async function saveUsername() {
   const username=document.getElementById('admin-username-input').value.trim().toLowerCase();
   if (!username) return;
-  const ok = await updateTutorFieldSafely('username', username);
+  const ok = await updateBarberFieldSafely('username', username);
   if (!ok) return;
   const el=document.getElementById('username-saved');
   el.style.display='block'; setTimeout(()=>el.style.display='none',2500);
@@ -1287,7 +1521,7 @@ async function saveUsername() {
 async function changePin() {
   const np=document.getElementById('new-pin').value.trim();
   if (!np) return;
-  const ok = await updateTutorFieldSafely('pin', np);
+  const ok = await updateBarberFieldSafely('pin', np);
   if (!ok) return;
   document.getElementById('new-pin').value='';
   const el=document.getElementById('pin-saved');
